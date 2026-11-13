@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Truth or Trending?</title>
+<style>
+  :root{
+    --bg:#eef1f6; --card:#fff; --ink:#1b2330; --muted:#5d6879; --line:#dde2ea;
+    --brand:#2c4a8a; --brand2:#3d63b8; --true:#1f8a4c; --true-bg:#e6f5ec;
+    --false:#c0392b; --false-bg:#fbeae8; --gold:#b7791f; --gold-bg:#fff6df; --chip:#f2f4f8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1060px;margin:0 auto;padding:16px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+  .logo{font-weight:800;font-size:1.35rem;color:var(--brand);letter-spacing:-.02em}
+  .logo span{color:var(--false)}
+  .progress{flex:1;min-width:200px;max-width:440px}
+  .bar{height:10px;background:#d5dbe6;border-radius:99px;overflow:hidden}
+  .bar>div{height:100%;background:var(--brand2);width:0;transition:width .3s}
+  .ptext{font-size:.85rem;color:var(--muted);margin-top:4px;text-align:right}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px}
+  h1{font-size:1.9rem;margin:.2em 0 .3em;letter-spacing:-.02em}
+  h2{font-size:1.25rem;margin:.2em 0 .5em}
+  h3{font-size:1rem;margin:0 0 .4em}
+  .muted{color:var(--muted)}
+  .btn{appearance:none;border:0;border-radius:10px;padding:12px 20px;font:inherit;font-weight:700;cursor:pointer}
+  .btn:active{transform:scale(.98)}
+  .btn:focus-visible,.tool:focus-visible,.ev:focus-visible,.vbtn:focus-visible{outline:3px solid #8fb0ff;outline-offset:2px}
+  .btn.primary{background:var(--brand);color:#fff}
+  .btn.primary:hover{filter:brightness(1.1)}
+  .btn.primary:disabled{background:#9aa6bd;cursor:default;filter:none}
+  .grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:16px 0}
+  .grid4>div{background:var(--chip);border-radius:12px;padding:14px}
+  .grid4 b{display:block;color:var(--brand);font-size:1.05rem}
+  .note{background:#fff8e6;border:1px solid #f1d58c;border-radius:10px;padding:10px 14px;font-size:.92rem}
+  .rules{background:#f4f7ff;border:1px solid #cfdaf5;border-radius:12px;padding:14px 18px}
+  .rules ul{margin:.4em 0;padding-left:1.2em}
+
+  .game{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:16px;align-items:start}
+  @media (max-width:840px){.game{grid-template-columns:1fr}}
+
+  /* Post */
+  .post{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  @media (min-width:841px){.post{position:sticky;top:12px}}
+  .shared{font-size:.85rem;color:var(--muted);padding:10px 16px 0}
+  .phead{display:flex;gap:10px;align-items:center;padding:14px 16px 6px}
+  .av{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;flex:none;font-size:.9rem}
+  .who{line-height:1.25;min-width:0}
+  .name{font-weight:700;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+  .check{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;background:#1d9bf0;color:#fff;font-size:10px}
+  .govtag{font-size:.7rem;background:#e8edf7;color:#384d77;border-radius:4px;padding:1px 5px;font-weight:600}
+  .handle{color:var(--muted);font-size:.85rem}
+  .ptype{margin-left:auto;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;background:var(--chip);color:var(--muted);border-radius:99px;padding:4px 10px;white-space:nowrap}
+  .ptext2{padding:4px 16px 12px;white-space:pre-line}
+  .media{margin:0 16px 12px;border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative}
+  .media img{display:block;width:100%;height:auto;max-height:340px;object-fit:cover}
+  .media svg{display:block;width:100%;height:auto}
+  .linkcard .img{height:110px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:1.2rem;padding:10px;text-align:center;letter-spacing:.03em}
+  .linkcard .meta{padding:10px 12px;background:#fafbfd}
+  .linkcard .dom{font-size:.78rem;color:var(--muted)}
+  .linkcard .hl{font-weight:700;line-height:1.3}
+  .ph{background:repeating-linear-gradient(45deg,#e7ebf2,#e7ebf2 12px,#dfe4ec 12px,#dfe4ec 24px);min-height:200px;display:grid;place-items:center;text-align:center;padding:24px;color:#4b5567;font-size:.95rem}
+  .ph b{display:block;font-size:2rem}
+  .playov{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
+  .playov span{width:70px;height:70px;border-radius:50%;background:rgba(0,0,0,.55);display:grid;place-items:center;color:#fff;font-size:28px;padding-left:6px}
+  .vlabel{position:absolute;left:12px;top:12px;background:#dc2626;color:#fff;font-weight:900;padding:3px 10px;border-radius:4px;font-size:.85rem}
+  .vtime{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.7);color:#fff;padding:1px 7px;border-radius:4px;font-size:.8rem}
+  .quote{background:#16213a;color:#fff;padding:28px 24px;font-family:Georgia,serif}
+  .quote q{font-size:1.25rem;line-height:1.4;display:block}
+  .quote .att{margin-top:14px;opacity:.85}
+  .sms{background:#f3f4f6;padding:16px}
+  .sms .from{text-align:center;font-size:.78rem;color:#6b7280;margin-bottom:10px}
+  .sms .bub{background:#e5e7eb;border-radius:18px;padding:10px 14px;max-width:88%;font-size:.95rem}
+  .shot{background:#fff;padding:14px;font-family:Arial,Helvetica,sans-serif;border:6px solid #e5e7eb}
+  .shot .sh{display:flex;gap:8px;align-items:center;font-size:.9rem}
+  .shot .sb{margin-top:8px;font-size:1rem}
+  .shot .st{margin-top:8px;color:#6b7280;font-size:.8rem}
+  .stats{display:flex;gap:18px;padding:10px 16px 14px;color:var(--muted);font-size:.88rem;border-top:1px solid var(--line)}
+
+  /* Investigate */
+  .tools{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 12px}
+  @media (max-width:520px){.tools{grid-template-columns:1fr}}
+  .tool{display:flex;flex-direction:column;gap:2px;align-items:flex-start;text-align:left;border:1px solid var(--line);background:#fafbfd;border-radius:10px;padding:10px 12px;font:inherit;cursor:pointer;color:var(--ink)}
+  .tool:hover{border-color:var(--brand2)}
+  .tool .ic{font-size:1.3rem}
+  .tool b{font-size:.92rem;line-height:1.2}
+  .tool small{color:var(--muted);font-size:.78rem;line-height:1.25}
+  .tool.used{background:#eef3ff;border-color:#b7c8f0}
+  .evlist{display:grid;gap:8px;margin-bottom:14px}
+  .evgroup{font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--brand);margin:6px 0 -2px}
+  .ev{position:relative;display:block;width:100%;text-align:left;font:inherit;color:inherit;background:#f7f9fc;border:2px solid var(--line);border-radius:10px;padding:10px 12px 10px 40px;font-size:.93rem;cursor:pointer;animation:fade .25s}
+  .ev:hover{border-color:#a8bbe6}
+  .ev::before{content:"☆";position:absolute;left:12px;top:9px;font-size:1.15rem;color:#9aa6bd}
+  .ev.key{border-color:var(--gold);background:var(--gold-bg)}
+  .ev.key::before{content:"★";color:var(--gold)}
+  .ev .src{font-size:.78rem;color:#1a7a3d;font-weight:600}
+  .ev .badge{display:inline-block;margin-top:6px;font-size:.75rem;font-weight:800;border-radius:6px;padding:2px 8px}
+  .b3{background:#fde68a;color:#7c4a03}.b1{background:#dbeafe;color:#1e3a8a}.b0{background:#e5e7eb;color:#4b5563}
+  .locked .ev{cursor:default}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .step{font-weight:800;margin:4px 0 6px}
+  .step small{font-weight:400;color:var(--muted)}
+  .verdict{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .vbtn{padding:13px;border-radius:12px;border:2px solid;font:inherit;font-weight:800;font-size:1.02rem;cursor:pointer;background:#fff}
+  .vbtn.t{border-color:var(--true);color:var(--true)}
+  .vbtn.f{border-color:var(--false);color:var(--false)}
+  .vbtn.t.sel{background:var(--true);color:#fff}
+  .vbtn.f.sel{background:var(--false);color:#fff}
+  .vbtn:disabled{cursor:default}
+  .keybox{margin:12px 0;font-size:.9rem;padding:10px 12px;border-radius:10px;background:var(--chip)}
+  .keybox.has{background:var(--gold-bg)}
+  .lock{width:100%}
+  .feedback{margin-top:14px;border-radius:12px;padding:14px 16px;animation:fade .3s}
+  .feedback.right{background:var(--true-bg);border:1px solid #a9dcbc}
+  .feedback.wrong{background:var(--false-bg);border:1px solid #efb7b0}
+  .feedback .res{font-weight:800;font-size:1.1rem}
+  .pts{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+  .pts span{background:#fff;border-radius:8px;padding:4px 10px;font-weight:700;font-size:.9rem;border:1px solid var(--line)}
+  .tag{display:inline-block;font-size:.75rem;font-weight:800;border-radius:6px;padding:2px 8px;color:#fff}
+  .tag.T{background:var(--true)} .tag.F{background:var(--false)}
+  .next{margin-top:12px;width:100%}
+
+  .big{font-size:2.8rem;font-weight:800;color:var(--brand);line-height:1}
+  table{width:100%;border-collapse:collapse;font-size:.92rem}
+  th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.75rem;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+  .ok{color:var(--true);font-weight:800}.no{color:var(--false);font-weight:800}
+  .verdict.three{grid-template-columns:1fr 1fr 1fr}
+  .vbtn.m{border-color:var(--gold);color:var(--gold)}
+  .vbtn.m.sel{background:var(--gold);color:#fff}
+  .tag.M{background:var(--gold)}
+  .defs{display:grid;gap:10px;margin:12px 0}
+  .def{border-radius:12px;padding:12px 14px;border:1px solid var(--line);background:#fff}
+  .def h3{margin:0 0 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .def p{margin:.2em 0}
+  .def.T{border-left:6px solid var(--true)} .def.F{border-left:6px solid var(--false)} .def.M{border-left:6px solid var(--gold)}
+  .advonly{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;background:var(--gold-bg);color:#7c4a03;border-radius:99px;padding:2px 8px}
+  .thumb{background:#f4f7ff;border:1px dashed #9fb3e0;border-radius:10px;padding:10px 14px;font-size:.95rem}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+  @media (max-width:640px){.modes{grid-template-columns:1fr}}
+  .mode{text-align:left;font:inherit;color:inherit;background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer}
+  .mode:hover{border-color:#a8bbe6}
+  .mode.sel{border-color:var(--brand);background:#f1f5ff;box-shadow:0 0 0 3px #d6e1fb}
+  .mode h3{font-size:1.1rem;display:flex;justify-content:space-between;align-items:center}
+  .mode .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}
+  .mode p{margin:.3em 0;font-size:.93rem}
+  .mode .radio{width:20px;height:20px;border-radius:50%;border:2px solid #9aa6bd;display:inline-block;flex:none}
+  .mode.sel .radio{border:6px solid var(--brand)}
+  .steprow{display:flex;align-items:center;gap:8px;margin:4px 0 6px}
+  .steprow .step{margin:0}
+  .helpbtn{width:26px;height:26px;border-radius:50%;border:2px solid var(--brand2);background:#fff;color:var(--brand2);font-weight:800;cursor:pointer;font:inherit;font-weight:800;line-height:1;padding:0}
+  .helpbtn:hover,.helpbtn[aria-expanded="true"]{background:var(--brand2);color:#fff}
+  .modepill{margin-left:auto;font-size:.75rem;font-weight:700;color:var(--muted);background:var(--chip);border-radius:99px;padding:3px 10px}
+  .help{position:relative;background:#fff;border:2px solid var(--brand2);border-radius:12px;padding:12px 14px 6px;margin:4px 0 10px;box-shadow:0 8px 24px rgba(20,40,90,.15);animation:fade .2s}
+  .help .x{position:absolute;right:8px;top:6px;border:0;background:none;font-size:1.3rem;cursor:pointer;color:var(--muted)}
+  .help .def{padding:8px 10px}
+  .help .def p{font-size:.9rem}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo">Truth <span>or</span> Trending?</div>
+    <div class="progress hidden" id="prog">
+      <div class="bar"><div id="barfill"></div></div>
+      <div class="ptext" id="ptext"></div>
+    </div>
+  </header>
+
+  <section class="panel" id="intro">
+    <h1>Can you tell what's real in your feed?</h1>
+    <p>You'll see <b id="count"></b> posts drawn at random from a bank of <b id="bank"></b>. They come from news outlets, politicians, bloggers, government agencies, family, friends, and strangers. Each time you play, you'll get a different mix.</p>
+    <h2>What the verdicts mean</h2>
+    <div class="defs" id="introDefs"></div>
+    <h2>The fact-checker's toolkit: SIFT</h2>
+    <div class="grid4">
+      <div><b>S — Stop</b>Notice your emotions. Posts that make you angry, scared, or excited are designed to be shared fast.</div>
+      <div><b>I — Investigate the source</b>Who is behind this? What's their expertise, track record, or agenda?</div>
+      <div><b>F — Find better coverage</b>Read "laterally." What do other sources say?</div>
+      <div><b>T — Trace claims</b>Follow quotes, images, and numbers back to the original.</div>
+    </div>
+    <div class="rules">
+      <h3>How scoring works</h3>
+      <ul>
+        <li>Use the three investigation tools to gather evidence. Not every clue matters, and some are distractions.</li>
+        <li>Choose your verdict: <b>10 points</b> if it's right. <span class="muted">(Advanced mode: mixing up <b>False</b> and <b>Misleading</b> earns half credit, <b>5 points</b>, because you still spotted that the post can't be trusted.)</span></li>
+        <li>Star the <b>one piece of evidence</b> that best proves your verdict:
+          <br>🎯 <b>Smoking gun</b> (the single most decisive clue) = <b>+5</b> · <b>Helpful but not the best</b> = <b>+2</b> · <b>Not decisive</b> = +0</li>
+        <li>Evidence points count only if your verdict earns full or half credit.</li>
+      </ul>
+    </div>
+    <p class="note" style="margin-top:14px">⚠️ Every person, organization, website, and event in this game is <b>fictional</b>, even though the situations are realistic. Don't Google them. Use only the evidence in the game.</p>
+    <h2 style="margin-top:20px">Choose your mode</h2>
+    <p class="muted" id="lockNote" style="margin:.2em 0"></p>
+    <div class="modes" id="modes">
+      <button class="mode sel" data-mode="basic" aria-pressed="true">
+        <h3>🟢 Basic mode <span class="radio"></span></h3>
+        <div class="chips"><span class="tag T">FACTUAL</span><span class="tag F">FALSE</span></div>
+        <p><b>Two choices.</b> Decide whether you can trust what the post is telling you.</p>
+        <p>Anything that would leave you believing something untrue counts as <b>False</b>, even if it's built from real information.</p>
+        <p class="muted">Best for your first time playing.</p>
+      </button>
+      <button class="mode" data-mode="advanced" aria-pressed="false">
+        <h3>🟠 Advanced mode <span class="radio"></span></h3>
+        <div class="chips"><span class="tag T">FACTUAL</span><span class="tag M">MISLEADING</span><span class="tag F">FALSE</span></div>
+        <p><b>Three choices.</b> When a post can't be trusted, you also decide <i>how</i> it fails: is it <b>made up</b> (False) or <b>real information twisted</b> (Misleading)?</p>
+        <p>Mixing up False and Misleading earns half credit.</p>
+        <p class="muted">Try this after you've played Basic.</p>
+      </button>
+    </div>
+    <p style="margin-top:14px"><button class="btn primary" id="startBtn">Start scrolling →</button></p>
+  </section>
+
+  <section class="game hidden" id="game">
+    <div id="postWrap"></div>
+    <div class="panel" id="inv">
+      <h2>🔎 Investigate</h2>
+      <div class="tools" id="tools"></div>
+      <div class="evlist" id="evlist"><p class="muted" id="evempty" style="margin:0">Open a tool to collect evidence. Click a piece of evidence to ★ star it as your key evidence.</p></div>
+      <div class="steprow"><div class="step">1. Your verdict</div>
+        <button class="helpbtn" id="helpBtn" aria-expanded="false" aria-controls="helpBox" title="What do the choices mean?">?</button>
+        <span class="modepill" id="modePill"></span></div>
+      <div class="help hidden" id="helpBox" role="dialog" aria-label="What the verdicts mean">
+        <button class="x" id="helpX" aria-label="Close">×</button>
+        <h3 style="margin:0 0 6px">What do the choices mean?</h3>
+        <div class="defs" id="helpDefs" style="margin:6px 0"></div>
+      </div>
+      <div class="verdict" id="verdictRow">
+        <button class="vbtn t" id="vT">✔ Factual</button>
+        <button class="vbtn m hidden" id="vM">⚠ Misleading</button>
+        <button class="vbtn f" id="vF">✘ False</button>
+      </div>
+      <div class="keybox" id="keybox"></div>
+      <button class="btn primary lock" id="lockBtn" disabled>Lock in my answer</button>
+      <div id="fb"></div>
+    </div>
+  </section>
+
+  <section class="panel hidden" id="results"></section>
+</div>
+
+<script>
+const IMG = {
+  chart: `<svg viewBox="0 0 600 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Campaign graphic: two bars, the second twice as tall, labeled Crime Under Hayes">
+    <rect width="600" height="320" fill="#111827"/>
+    <text x="300" y="46" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="30" fill="#fff">CRIME UNDER HAYES</text>
+    <rect x="150" y="190" width="110" height="90" fill="#9ca3af"/><text x="205" y="180" text-anchor="middle" font-family="Arial" font-weight="700" font-size="26" fill="#fff">12</text>
+    <rect x="340" y="100" width="110" height="180" fill="#dc2626"/><text x="395" y="90" text-anchor="middle" font-family="Arial" font-weight="700" font-size="26" fill="#fff">24</text>
+    <text x="205" y="304" text-anchor="middle" font-family="Arial" font-size="16" fill="#d1d5db">BEFORE</text>
+    <text x="395" y="304" text-anchor="middle" font-family="Arial" font-size="16" fill="#d1d5db">NOW</text>
+    <path d="M270 150 L 325 110" stroke="#fbbf24" stroke-width="6"/><path d="M312 104 L 330 106 L 322 122Z" fill="#fbbf24"/>
+    <text x="520" y="200" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="34" fill="#fbbf24">2X!</text>
+  </svg>`,
+  flood: `<svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Photo of a flooded airport terminal with a shark fin in the water">
+<defs>
+<linearGradient id="fl-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d4a57"/><stop offset="1" stop-color="#8a96a0"/></linearGradient>
+<linearGradient id="fl-ceil" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfd3d6"/><stop offset="1" stop-color="#9ea5ab"/></linearGradient>
+<linearGradient id="fl-water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d7650"/><stop offset=".5" stop-color="#5e5a3c"/><stop offset="1" stop-color="#3b3a27"/></linearGradient>
+<linearGradient id="fl-fin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5d6b78"/><stop offset="1" stop-color="#28323b"/></linearGradient>
+<linearGradient id="fl-floor" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9b4a6"/><stop offset="1" stop-color="#8d887a"/></linearGradient>
+<filter id="fl-blur"><feGaussianBlur stdDeviation="1.2"/></filter>
+<filter id="fl-blur3"><feGaussianBlur stdDeviation="3"/></filter>
+</defs>
+<rect width="600" height="340" fill="url(#fl-ceil)"/>
+<!-- ceiling perspective -->
+<polygon points="0,0 600,0 470,70 130,70" fill="#e4e6e8"/>
+<g stroke="#b5bbc0" stroke-width="2"><line x1="60" y1="0" x2="175" y2="70"/><line x1="200" y1="0" x2="250" y2="70"/><line x1="400" y1="0" x2="350" y2="70"/><line x1="540" y1="0" x2="425" y2="70"/></g>
+<g fill="#fffbe6" opacity=".95"><rect x="150" y="22" width="60" height="6" rx="3"/><rect x="270" y="22" width="60" height="6" rx="3"/><rect x="390" y="22" width="60" height="6" rx="3"/><rect x="200" y="48" width="44" height="5" rx="2"/><rect x="356" y="48" width="44" height="5" rx="2"/></g>
+<!-- back window wall -->
+<rect x="130" y="70" width="340" height="120" fill="url(#fl-sky)"/>
+<g stroke="#9aa3aa" stroke-width="1" opacity=".5" filter="url(#fl-blur)"><line x1="150" y1="75" x2="140" y2="185"/><line x1="190" y1="72" x2="180" y2="186"/><line x1="240" y1="74" x2="230" y2="188"/><line x1="290" y1="72" x2="280" y2="186"/><line x1="340" y1="74" x2="330" y2="188"/><line x1="390" y1="72" x2="380" y2="186"/><line x1="440" y1="74" x2="430" y2="188"/></g>
+<path d="M150 170 Q 200 150 260 165 L 300 160 Q 360 150 455 168 L 455 190 L 150 190Z" fill="#4d5660" opacity=".6"/>
+<rect x="250" y="148" width="90" height="16" rx="6" fill="#d9dde0" opacity=".8"/><rect x="320" y="140" width="6" height="14" fill="#c43" opacity=".8"/>
+<g fill="#5a636b"><rect x="130" y="70" width="6" height="120"/><rect x="215" y="70" width="5" height="120"/><rect x="298" y="70" width="5" height="120"/><rect x="381" y="70" width="5" height="120"/><rect x="464" y="70" width="6" height="120"/><rect x="130" y="125" width="340" height="4"/></g>
+<!-- side walls -->
+<polygon points="0,0 130,70 130,200 0,250" fill="#c9c4b8"/>
+<polygon points="600,0 470,70 470,200 600,250" fill="#bdb8ab"/>
+<polygon points="15,60 110,95 110,175 15,200" fill="#2d3c4c"/><text x="62" y="140" font-family="Arial" font-weight="700" font-size="15" fill="#ffd34d" text-anchor="middle" transform="skewY(18) translate(0,-20)">B7</text>
+<polygon points="490,92 585,62 585,150 490,165" fill="#1d2a3a"/>
+<text x="500" y="112" font-family="Arial" font-weight="700" font-size="13" fill="#ffd34d" transform="rotate(-8 500 112)">GATES B1–B12 →</text><text x="502" y="134" font-family="Arial" font-size="11" fill="#fff" transform="rotate(-8 500 134)">Baggage Claim ↓</text>
+<!-- seats -->
+<g fill="#22313f"><rect x="160" y="182" width="120" height="16" rx="3"/><rect x="320" y="182" width="120" height="16" rx="3"/></g>
+<g fill="#2f4152"><rect x="40" y="200" width="150" height="26" rx="4"/><rect x="420" y="200" width="150" height="26" rx="4"/></g>
+<!-- water -->
+<path d="M0 212 L600 212 L600 340 L0 340Z" fill="url(#fl-water)"/>
+<path d="M0 212 L600 212 L600 220 L0 220Z" fill="#9b9468" opacity=".6"/>
+<!-- reflections -->
+<g opacity=".35" filter="url(#fl-blur3)"><rect x="150" y="222" width="60" height="5" fill="#fffbe6"/><rect x="270" y="228" width="60" height="6" fill="#fffbe6"/><rect x="390" y="222" width="60" height="5" fill="#fffbe6"/><rect x="140" y="236" width="330" height="22" fill="#8a96a0"/></g>
+<g stroke="#b5ad80" stroke-width="1.5" fill="none" opacity=".55"><path d="M20 250 q 30 -6 60 0 t 60 0"/><path d="M420 262 q 30 -6 60 0 t 60 0"/><path d="M60 300 q 40 -8 80 0 t 80 0"/><path d="M380 310 q 40 -8 80 0 t 80 0"/><path d="M200 322 q 30 -6 60 0"/></g>
+<!-- floating debris -->
+<rect x="90" y="262" width="40" height="10" rx="2" fill="#c9b27a" transform="rotate(-8 110 267)"/><circle cx="500" cy="290" r="6" fill="#e2e2e2"/><rect x="470" y="240" width="22" height="8" fill="#b44" transform="rotate(12 480 244)"/>
+<!-- shark fin + wake -->
+<ellipse cx="310" cy="286" rx="70" ry="10" fill="#2f2e20" opacity=".55"/>
+<path d="M280 286 C 290 260 300 228 322 210 C 322 236 330 262 352 286 Z" fill="url(#fl-fin)"/>
+<path d="M300 240 C 306 228 314 218 322 210 C 318 230 318 250 326 272" stroke="#7d8a96" stroke-width="2" fill="none" opacity=".6"/>
+<g fill="none" stroke="#d6cfa6" stroke-width="2.5" opacity=".8"><path d="M262 288 q 48 -12 106 0"/><path d="M236 298 q 74 -16 150 0" opacity=".6"/><path d="M210 310 q 100 -18 200 0" opacity=".4"/></g>
+<rect width="600" height="340" fill="#203040" opacity=".08"/>
+</svg>`,
+  traffic: `<svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Phone photo through a windshield of stopped highway traffic with police lights ahead">
+<defs>
+<linearGradient id="tr-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fa6c9"/><stop offset="1" stop-color="#dfe9f1"/></linearGradient>
+<linearGradient id="tr-road" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b8f94"/><stop offset="1" stop-color="#4b4f54"/></linearGradient>
+<linearGradient id="tr-car1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b8bfc7"/><stop offset="1" stop-color="#6e7781"/></linearGradient>
+<linearGradient id="tr-car2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9b1c1c"/><stop offset="1" stop-color="#5a0e0e"/></linearGradient>
+<linearGradient id="tr-car3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b4d7e"/><stop offset="1" stop-color="#162a47"/></linearGradient>
+<linearGradient id="tr-dash" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2c30"/><stop offset="1" stop-color="#0f1012"/></linearGradient>
+<radialGradient id="tr-red"><stop offset="0" stop-color="#ff3b3b" stop-opacity=".9"/><stop offset="1" stop-color="#ff3b3b" stop-opacity="0"/></radialGradient>
+<radialGradient id="tr-blue"><stop offset="0" stop-color="#3b7bff" stop-opacity=".9"/><stop offset="1" stop-color="#3b7bff" stop-opacity="0"/></radialGradient>
+<radialGradient id="tr-tail"><stop offset="0" stop-color="#ff4d4d"/><stop offset="1" stop-color="#ff4d4d" stop-opacity="0"/></radialGradient>
+<linearGradient id="tr-glare" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".25"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient>
+</defs>
+<rect width="600" height="340" fill="url(#tr-sky)"/>
+<g fill="#ffffff" opacity=".7"><ellipse cx="120" cy="50" rx="60" ry="14"/><ellipse cx="170" cy="42" rx="40" ry="12"/><ellipse cx="460" cy="70" rx="70" ry="12"/></g>
+<!-- tree lines -->
+<path d="M0 150 Q 40 120 80 140 Q 120 110 170 138 Q 210 120 250 145 L 270 150 L 0 160Z" fill="#3f6b3a"/>
+<path d="M600 150 Q 560 118 520 140 Q 480 112 430 138 Q 390 122 350 145 L 330 150 L 600 160Z" fill="#4a7843"/>
+<rect x="0" y="148" width="600" height="14" fill="#5f8a4f"/>
+<polygon points="0,160 250,150 -40,340 0,340" fill="#6f9459"/><polygon points="600,160 350,150 640,340 600,340" fill="#668c52"/>
+<!-- road -->
+<polygon points="250,150 350,150 640,340 -40,340" fill="url(#tr-road)"/>
+<polygon points="296,150 304,150 330,340 270,340" fill="#55595e" opacity=".3"/>
+<g stroke="#f0f0f0" stroke-width="3" stroke-dasharray="14 16"><line x1="283" y1="150" x2="150" y2="340"/><line x1="317" y1="150" x2="450" y2="340"/></g>
+<line x1="252" y1="150" x2="-40" y2="340" stroke="#e8d36a" stroke-width="3"/><line x1="348" y1="150" x2="640" y2="340" stroke="#eee" stroke-width="3"/>
+<!-- guardrail -->
+<polyline points="350,148 640,300" stroke="#c4c8cc" stroke-width="5" fill="none"/>
+<!-- far police -->
+<rect x="285" y="148" width="30" height="10" rx="2" fill="#f2f2f2"/><rect x="288" y="145" width="10" height="4" fill="#ff3b3b"/><rect x="302" y="145" width="10" height="4" fill="#3b7bff"/>
+<circle cx="293" cy="146" r="18" fill="url(#tr-red)"/><circle cx="307" cy="146" r="18" fill="url(#tr-blue)"/>
+<!-- small far cars -->
+<g><rect x="262" y="160" width="26" height="14" rx="3" fill="#ddd"/><rect x="312" y="160" width="26" height="14" rx="3" fill="#333"/><rect x="290" y="166" width="22" height="12" rx="3" fill="#7a1"/></g>
+<!-- mid cars -->
+<g><rect x="215" y="180" width="58" height="34" rx="6" fill="url(#tr-car1)"/><rect x="222" y="184" width="44" height="12" rx="3" fill="#2a3440"/><rect x="218" y="200" width="10" height="6" fill="#d33"/><rect x="260" y="200" width="10" height="6" fill="#d33"/><circle cx="223" cy="203" r="12" fill="url(#tr-tail)" opacity=".7"/><circle cx="265" cy="203" r="12" fill="url(#tr-tail)" opacity=".7"/></g>
+<g><rect x="330" y="176" width="62" height="38" rx="6" fill="#e9e9e4"/><rect x="337" y="180" width="48" height="13" rx="3" fill="#2a3440"/><rect x="333" y="198" width="11" height="6" fill="#d33"/><rect x="378" y="198" width="11" height="6" fill="#d33"/><circle cx="338" cy="201" r="12" fill="url(#tr-tail)" opacity=".7"/><circle cx="383" cy="201" r="12" fill="url(#tr-tail)" opacity=".7"/></g>
+<!-- near cars -->
+<g><rect x="95" y="205" width="130" height="78" rx="10" fill="url(#tr-car2)"/><rect x="110" y="212" width="100" height="26" rx="5" fill="#1c2128"/><rect x="100" y="246" width="26" height="12" rx="3" fill="#ff5252"/><rect x="194" y="246" width="26" height="12" rx="3" fill="#ff5252"/><circle cx="113" cy="252" r="24" fill="url(#tr-tail)" opacity=".8"/><circle cx="207" cy="252" r="24" fill="url(#tr-tail)" opacity=".8"/><rect x="140" y="262" width="40" height="11" rx="2" fill="#f5f5f5"/></g>
+<g><rect x="370" y="200" width="140" height="84" rx="10" fill="url(#tr-car3)"/><rect x="386" y="207" width="108" height="28" rx="5" fill="#141a22"/><rect x="376" y="244" width="28" height="12" rx="3" fill="#ff5252"/><rect x="476" y="244" width="28" height="12" rx="3" fill="#ff5252"/><circle cx="390" cy="250" r="24" fill="url(#tr-tail)" opacity=".8"/><circle cx="490" cy="250" r="24" fill="url(#tr-tail)" opacity=".8"/><rect x="420" y="262" width="40" height="11" rx="2" fill="#f5f5f5"/></g>
+<!-- windshield frame + dashboard -->
+<path d="M0 0 L 600 0 L 600 20 Q 300 4 0 20Z" fill="#141518"/>
+<polygon points="0,0 40,0 0,300" fill="#141518"/><polygon points="600,0 560,0 600,300" fill="#141518"/>
+<path d="M0 290 Q 300 260 600 290 L 600 340 L 0 340Z" fill="url(#tr-dash)"/>
+<rect x="262" y="10" width="76" height="24" rx="8" fill="#1e1f22"/><rect x="266" y="13" width="68" height="17" rx="6" fill="#6f87a1" opacity=".6"/>
+<polygon points="0,0 260,0 0,220" fill="url(#tr-glare)"/>
+</svg>`,
+  video: `<svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Grainy video still of a woman speaking at a podium at a town hall meeting">
+<defs>
+<linearGradient id="vd-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b4a32"/><stop offset="1" stop-color="#3b2819"/></linearGradient>
+<radialGradient id="vd-spot" cx=".5" cy=".35" r=".6"><stop offset="0" stop-color="#fff2d6" stop-opacity=".25"/><stop offset="1" stop-color="#000" stop-opacity=".3"/></radialGradient>
+<linearGradient id="vd-skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#c99872"/><stop offset="1" stop-color="#9c6d4c"/></linearGradient>
+<linearGradient id="vd-blazer" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2c4167"/><stop offset="1" stop-color="#16233b"/></linearGradient>
+<linearGradient id="vd-pod" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5a3b22"/><stop offset=".5" stop-color="#7c5332"/><stop offset="1" stop-color="#4a301b"/></linearGradient>
+<filter id="vd-grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".12"/></feComponentTransfer></filter>
+<filter id="vd-soft"><feGaussianBlur stdDeviation=".8"/></filter>
+</defs>
+<g filter="url(#vd-soft)">
+<rect width="600" height="340" fill="url(#vd-wall)"/>
+<g stroke="#2e1f12" stroke-width="3" opacity=".6"><line x1="60" y1="0" x2="60" y2="340"/><line x1="150" y1="0" x2="150" y2="340"/><line x1="450" y1="0" x2="450" y2="340"/><line x1="540" y1="0" x2="540" y2="340"/></g>
+<rect x="0" y="230" width="600" height="8" fill="#2b1c10"/>
+<!-- seal on wall -->
+<circle cx="500" cy="95" r="44" fill="#c9a24a"/><circle cx="500" cy="95" r="36" fill="#1f3a63"/><circle cx="500" cy="95" r="20" fill="#c9a24a" opacity=".7"/>
+<!-- flag -->
+<line x1="95" y1="20" x2="95" y2="300" stroke="#c9a24a" stroke-width="4"/><circle cx="95" cy="18" r="6" fill="#d9b55a"/>
+<path d="M98 30 Q 130 40 150 32 Q 175 24 200 34 L 200 170 Q 175 160 150 168 Q 125 176 98 166Z" fill="#b22234"/>
+<g fill="#f5f5f5"><path d="M98 50 Q 130 60 150 52 Q 175 44 200 54 L 200 64 Q 175 54 150 62 Q 125 70 98 60Z"/><path d="M98 80 Q 130 90 150 82 Q 175 74 200 84 L 200 94 Q 175 84 150 92 Q 125 100 98 90Z"/><path d="M98 110 Q 130 120 150 112 Q 175 104 200 114 L 200 124 Q 175 114 150 122 Q 125 130 98 120Z"/><path d="M98 140 Q 130 150 150 142 Q 175 134 200 144 L 200 154 Q 175 144 150 152 Q 125 160 98 150Z"/></g>
+<path d="M98 30 Q 120 37 140 35 L 140 95 Q 120 97 98 92Z" fill="#3c3b6e"/>
+<!-- woman -->
+<path d="M210 340 Q 215 245 300 232 Q 385 245 390 340Z" fill="url(#vd-blazer)"/>
+<path d="M282 234 L 300 290 L 318 234Z" fill="#e8e2d6"/>
+<path d="M276 236 L 300 300 L 270 300 Z" fill="#1d2d4a"/><path d="M324 236 L 300 300 L 330 300 Z" fill="#1d2d4a"/>
+<rect x="288" y="200" width="24" height="38" fill="#a87756"/>
+<ellipse cx="300" cy="160" rx="42" ry="52" fill="url(#vd-skin)"/>
+<path d="M252 160 Q 246 92 300 88 Q 356 90 350 160 Q 348 128 330 112 Q 300 128 262 120 Q 254 138 252 160Z" fill="#2a1a12"/>
+<path d="M252 158 Q 244 200 262 222 Q 256 190 260 160Z" fill="#2a1a12"/><path d="M348 158 Q 356 200 338 222 Q 344 190 340 160Z" fill="#2a1a12"/>
+<g fill="#2a1a12"><ellipse cx="284" cy="156" rx="4.5" ry="3.5"/><ellipse cx="316" cy="156" rx="4.5" ry="3.5"/></g>
+<g stroke="#4a2e1e" stroke-width="2.5" fill="none" stroke-linecap="round"><path d="M276 145 Q 284 141 292 144"/><path d="M308 144 Q 316 141 324 145"/></g>
+<path d="M300 160 Q 296 176 302 180" stroke="#8a5a3c" stroke-width="2" fill="none"/>
+<ellipse cx="300" cy="192" rx="11" ry="6" fill="#7a3b33"/><path d="M290 190 Q 300 187 310 190" stroke="#efe" stroke-width="2" fill="none"/>
+<circle cx="258" cy="172" r="3" fill="#e5c76b"/><circle cx="342" cy="172" r="3" fill="#e5c76b"/>
+<!-- podium -->
+<path d="M220 255 L 380 255 L 368 340 L 232 340Z" fill="url(#vd-pod)"/>
+<rect x="212" y="248" width="176" height="14" rx="3" fill="#8a5d39"/>
+<circle cx="300" cy="295" r="20" fill="#c9a24a" opacity=".8"/><circle cx="300" cy="295" r="14" fill="#1f3a63"/>
+<path d="M300 248 L 300 226 Q 300 214 292 210" stroke="#222" stroke-width="3" fill="none"/><ellipse cx="290" cy="207" rx="5" ry="7" fill="#111" transform="rotate(-30 290 207)"/>
+</g>
+<rect width="600" height="340" fill="url(#vd-spot)"/>
+<rect width="600" height="340" filter="url(#vd-grain)"/>
+<rect x="0" y="300" width="600" height="40" fill="#000" opacity=".25"/>
+</svg>`,
+  signing: `<svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Press photo of the governor signing a bill at a desk while teachers applaud behind her">
+<defs>
+<linearGradient id="sg-wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9e1cf"/><stop offset="1" stop-color="#cfc4ab"/></linearGradient>
+<linearGradient id="sg-desk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6e4325"/><stop offset="1" stop-color="#3e2413"/></linearGradient>
+<linearGradient id="sg-win" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd6ea"/><stop offset="1" stop-color="#eaf2f8"/></linearGradient>
+<radialGradient id="sg-light" cx=".5" cy=".3" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></radialGradient>
+</defs>
+<rect width="600" height="340" fill="url(#sg-wall)"/>
+<g stroke="#bfb397" stroke-width="2"><rect x="20" y="20" width="120" height="150" fill="none"/><rect x="460" y="20" width="120" height="150" fill="none"/></g>
+<rect x="230" y="14" width="140" height="110" fill="url(#sg-win)" stroke="#fff" stroke-width="8"/><line x1="300" y1="14" x2="300" y2="124" stroke="#fff" stroke-width="5"/><line x1="230" y1="69" x2="370" y2="69" stroke="#fff" stroke-width="5"/>
+<path d="M210 8 Q 225 70 214 140 L 236 140 Q 232 70 236 8Z" fill="#7a1f2b"/><path d="M390 8 Q 375 70 386 140 L 364 140 Q 368 70 364 8Z" fill="#7a1f2b"/>
+<!-- flags -->
+<line x1="170" y1="30" x2="170" y2="230" stroke="#c9a24a" stroke-width="3"/><path d="M172 38 Q 190 46 205 40 L 205 120 Q 190 126 172 118Z" fill="#1f3a63"/><circle cx="188" cy="78" r="12" fill="#e5c76b"/>
+<line x1="430" y1="30" x2="430" y2="230" stroke="#c9a24a" stroke-width="3"/><path d="M428 38 Q 410 46 395 40 L 395 120 Q 410 126 428 118Z" fill="#b22234"/><g fill="#fff"><rect x="395" y="56" width="33" height="7"/><rect x="395" y="76" width="33" height="7"/><rect x="395" y="96" width="33" height="7"/></g><rect x="410" y="38" width="18" height="34" fill="#3c3b6e"/>
+<!-- teachers row (back) -->
+<g>
+ <g transform="translate(70 120)"><path d="M-40 140 Q -38 60 0 52 Q 38 60 40 140Z" fill="#3f7d5a"/><ellipse cx="0" cy="30" rx="22" ry="26" fill="#e3b791"/><path d="M-23 28 Q -24 -2 0 -2 Q 24 -2 23 28 Q 20 6 0 8 Q -18 6 -23 28Z" fill="#c78a3c"/><path d="M-14 36 Q 0 46 14 36" stroke="#8a4b3a" stroke-width="2" fill="none"/><g fill="#e3b791"><ellipse cx="-10" cy="78" rx="9" ry="12"/><ellipse cx="10" cy="76" rx="9" ry="12"/></g></g>
+ <g transform="translate(135 112)"><path d="M-40 150 Q -38 66 0 58 Q 38 66 40 150Z" fill="#7a3f8a"/><ellipse cx="0" cy="32" rx="22" ry="27" fill="#8a5a3c"/><path d="M-26 34 Q -30 -6 0 -6 Q 30 -6 26 34 Q 22 8 0 6 Q -22 8 -26 34Z" fill="#1d1410"/><path d="M-12 40 Q 0 50 12 40" stroke="#f4e9e1" stroke-width="3" fill="none"/><g fill="#8a5a3c"><ellipse cx="-10" cy="84" rx="9" ry="12"/><ellipse cx="10" cy="82" rx="9" ry="12"/></g></g>
+ <g transform="translate(465 112)"><path d="M-40 150 Q -38 66 0 58 Q 38 66 40 150Z" fill="#c26a2c"/><ellipse cx="0" cy="32" rx="22" ry="27" fill="#f0c9a6"/><path d="M-22 26 Q -20 -4 0 -4 Q 22 -4 22 26 Q 14 8 0 10 Q -14 8 -22 26Z" fill="#6b4a2e"/><g stroke="#333" stroke-width="2" fill="none"><circle cx="-8" cy="30" r="6"/><circle cx="8" cy="30" r="6"/></g><path d="M-10 42 Q 0 50 10 42" stroke="#8a4b3a" stroke-width="2" fill="none"/><g fill="#f0c9a6"><ellipse cx="-10" cy="84" rx="9" ry="12"/><ellipse cx="10" cy="82" rx="9" ry="12"/></g></g>
+ <g transform="translate(530 122)"><path d="M-40 140 Q -38 60 0 52 Q 38 60 40 140Z" fill="#2c5a8a"/><ellipse cx="0" cy="30" rx="22" ry="26" fill="#c69468"/><path d="M-22 22 Q -18 0 0 0 Q 18 0 22 22 Q 10 10 0 12 Q -10 10 -22 22Z" fill="#3a2a1e"/><path d="M-10 38 Q 0 46 10 38" stroke="#7a3b33" stroke-width="2" fill="none"/><g fill="#c69468"><ellipse cx="-10" cy="78" rx="9" ry="12"/><ellipse cx="10" cy="76" rx="9" ry="12"/></g></g>
+</g>
+<!-- governor -->
+<g transform="translate(300 150)">
+ <path d="M-70 120 Q -66 30 0 22 Q 66 30 70 120Z" fill="#7f1d1d"/>
+ <path d="M-14 24 L 0 52 L 14 24Z" fill="#f4efe6"/>
+ <rect x="-10" y="-4" width="20" height="28" fill="#e2b48e"/>
+ <ellipse cx="0" cy="-30" rx="32" ry="38" fill="#e8bd98"/>
+ <path d="M-34 -20 Q -40 -74 0 -72 Q 40 -74 34 -20 Q 32 -46 18 -54 Q -2 -40 -26 -46 Q -32 -36 -34 -20Z" fill="#b8b8b8"/>
+ <path d="M-34 -24 Q -38 0 -26 10 Q -30 -8 -28 -22Z" fill="#a9a9a9"/><path d="M34 -24 Q 38 0 26 10 Q 30 -8 28 -22Z" fill="#a9a9a9"/>
+ <g fill="#3a2a22"><path d="M-17 -30 q 6 4 12 0" stroke="#3a2a22" stroke-width="2.5" fill="none"/><path d="M5 -30 q 6 4 12 0" stroke="#3a2a22" stroke-width="2.5" fill="none"/></g>
+ <path d="M-12 -6 Q 0 4 12 -6" stroke="#9a4a40" stroke-width="3" fill="none" stroke-linecap="round"/>
+ <circle cx="0" cy="40" r="4" fill="#e5c76b"/>
+</g>
+<!-- desk -->
+<rect x="80" y="238" width="440" height="16" fill="#8a5a33"/>
+<rect x="90" y="254" width="420" height="86" fill="url(#sg-desk)"/>
+<g stroke="#2e1a0d" stroke-width="2" opacity=".5"><rect x="110" y="266" width="120" height="60" fill="none"/><rect x="370" y="266" width="120" height="60" fill="none"/></g>
+<circle cx="300" cy="296" r="24" fill="#c9a24a"/><circle cx="300" cy="296" r="17" fill="#1f3a63"/><text x="300" y="301" font-family="Georgia" font-size="12" fill="#e5c76b" text-anchor="middle">★</text>
+<!-- document + arms -->
+<polygon points="250,226 360,224 368,244 242,246" fill="#fbfaf6"/>
+<g stroke="#b9b4a8" stroke-width="1.5"><line x1="262" y1="232" x2="344" y2="231"/><line x1="260" y1="237" x2="330" y2="236"/></g>
+<path d="M310 241 q 6 -6 12 0 t 12 -2" stroke="#1a2a6a" stroke-width="1.5" fill="none"/>
+<path d="M232 200 Q 250 232 290 240 L 296 230 Q 262 222 254 196Z" fill="#7f1d1d"/>
+<path d="M368 200 Q 352 228 320 236 L 314 226 Q 342 220 346 196Z" fill="#7f1d1d"/>
+<ellipse cx="294" cy="236" rx="10" ry="7" fill="#e8bd98"/><ellipse cx="320" cy="232" rx="10" ry="7" fill="#e8bd98"/>
+<line x1="320" y1="232" x2="336" y2="212" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+<rect x="180" y="222" width="40" height="18" rx="2" fill="#2b2b2b"/><rect x="186" y="214" width="6" height="12" fill="#c9a24a"/>
+<rect width="600" height="340" fill="url(#sg-light)"/>
+</svg>`,
+  mansion: `<svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aerial photo of a huge lakefront mansion with a pool and private dock at golden hour">
+<defs>
+<linearGradient id="mn-lake" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f7fa3"/><stop offset="1" stop-color="#14496a"/></linearGradient>
+<linearGradient id="mn-lawn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fb34f"/><stop offset="1" stop-color="#4f8a35"/></linearGradient>
+<linearGradient id="mn-pool" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7ee6f0"/><stop offset="1" stop-color="#1fb3c9"/></linearGradient>
+<linearGradient id="mn-roof" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4efe6"/><stop offset="1" stop-color="#d6cfc2"/></linearGradient>
+<linearGradient id="mn-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffcf7a" stop-opacity=".45"/><stop offset=".6" stop-color="#ffb347" stop-opacity="0"/></linearGradient>
+<radialGradient id="mn-tree"><stop offset="0" stop-color="#4e8a3a"/><stop offset="1" stop-color="#2d5a24"/></radialGradient>
+<filter id="mn-sh"><feGaussianBlur stdDeviation="4"/></filter>
+</defs>
+<rect width="600" height="340" fill="url(#mn-lake)"/>
+<g stroke="#9fd3ea" stroke-width="1.5" opacity=".35" fill="none"><path d="M380 260 q 20 -4 40 0"/><path d="M450 290 q 30 -5 60 0"/><path d="M500 230 q 20 -4 40 0"/><path d="M340 310 q 25 -4 50 0"/></g>
+<!-- shore/lawn -->
+<path d="M0 0 L 470 0 Q 430 80 450 140 Q 420 200 330 230 Q 220 270 120 300 Q 50 320 0 330Z" fill="#d9c79a"/>
+<path d="M0 0 L 455 0 Q 416 80 436 140 Q 406 192 322 220 Q 214 258 118 288 Q 50 308 0 318Z" fill="url(#mn-lawn)"/>
+<g stroke="#8cc05c" stroke-width="10" opacity=".25"><line x1="0" y1="40" x2="420" y2="10"/><line x1="0" y1="80" x2="420" y2="50"/><line x1="0" y1="120" x2="420" y2="90"/><line x1="0" y1="160" x2="400" y2="130"/><line x1="0" y1="200" x2="380" y2="170"/><line x1="0" y1="240" x2="330" y2="210"/></g>
+<!-- driveway -->
+<path d="M0 30 Q 60 40 110 70 Q 150 90 140 120" stroke="#e8e2d4" stroke-width="16" fill="none"/>
+<ellipse cx="130" cy="125" rx="34" ry="20" fill="#e8e2d4"/><ellipse cx="130" cy="125" rx="16" ry="9" fill="url(#mn-lawn)"/>
+<!-- house shadow -->
+<g filter="url(#mn-sh)" fill="#1f3a18" opacity=".55"><rect x="182" y="72" width="170" height="80"/><rect x="262" y="132" width="90" height="56"/><rect x="152" y="98" width="50" height="58"/></g>
+<!-- house -->
+<rect x="170" y="60" width="170" height="80" fill="url(#mn-roof)"/>
+<rect x="250" y="120" width="90" height="56" fill="#ece6da"/>
+<rect x="140" y="86" width="50" height="58" fill="#e2dbcd"/>
+<g fill="#3b4a55" opacity=".85"><rect x="180" y="70" width="60" height="22"/><rect x="250" y="70" width="80" height="10"/><rect x="262" y="132" width="66" height="14"/></g>
+<g fill="#5a6c78"><rect x="290" y="88" width="40" height="40" opacity=".4"/></g>
+<rect x="196" y="100" width="40" height="30" fill="#7fb7c9" opacity=".7"/>
+<g stroke="#c8c0b0" stroke-width="2"><line x1="170" y1="60" x2="340" y2="60"/><line x1="250" y1="176" x2="340" y2="176"/></g>
+<!-- patio + pool -->
+<polygon points="270,180 380,166 400,214 290,230" fill="#efe8d8"/>
+<polygon points="292,188 370,178 384,208 306,220" fill="url(#mn-pool)"/>
+<g stroke="#ffffff" stroke-width="1.5" opacity=".6" fill="none"><path d="M300 200 q 10 -4 20 0 t 20 0"/><path d="M320 210 q 10 -4 20 0 t 20 0"/></g>
+<g fill="#fff"><rect x="276" y="200" width="10" height="20" rx="2" transform="rotate(-8 281 210)"/><rect x="390" y="182" width="10" height="20" rx="2" transform="rotate(-8 395 192)"/></g>
+<circle cx="392" cy="210" r="8" fill="#f2a33a"/>
+<!-- dock -->
+<path d="M380 205 L 470 240" stroke="#a37c52" stroke-width="10"/><rect x="458" y="226" width="48" height="34" fill="#a37c52" transform="rotate(22 482 243)"/>
+<g stroke="#7a5a38" stroke-width="1.5"><line x1="400" y1="208" x2="396" y2="218"/><line x1="420" y1="216" x2="416" y2="226"/><line x1="440" y1="223" x2="436" y2="233"/></g>
+<path d="M505 268 l 34 12 l -6 14 l -34 -12 z" fill="#f4f4f4"/><path d="M510 270 l 22 8 l -3 6 l -22 -8z" fill="#2c4a6a"/>
+<!-- trees -->
+<g>
+<g filter="url(#mn-sh)" fill="#1f3a18" opacity=".5"><circle cx="72" cy="198" r="26"/><circle cx="112" cy="230" r="20"/><circle cx="42" cy="110" r="24"/><circle cx="392" cy="54" r="24"/><circle cx="420" cy="104" r="18"/><circle cx="230" cy="214" r="18"/></g>
+<circle cx="64" cy="190" r="26" fill="url(#mn-tree)"/><circle cx="104" cy="222" r="20" fill="url(#mn-tree)"/><circle cx="34" cy="102" r="24" fill="url(#mn-tree)"/><circle cx="384" cy="46" r="24" fill="url(#mn-tree)"/><circle cx="412" cy="96" r="18" fill="url(#mn-tree)"/><circle cx="222" cy="206" r="18" fill="url(#mn-tree)"/><circle cx="20" cy="250" r="22" fill="url(#mn-tree)"/>
+</g>
+<rect width="600" height="340" fill="url(#mn-gold)"/>
+</svg>`,
+  lemon: `<svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Photo of a glass of lemon water with cayenne pepper on a sunny kitchen counter">
+<defs>
+<linearGradient id="lm-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff7e8"/><stop offset="1" stop-color="#f1dfc0"/></linearGradient>
+<linearGradient id="lm-counter" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3efe9"/><stop offset="1" stop-color="#d9d2c6"/></linearGradient>
+<linearGradient id="lm-glass" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".2" stop-color="#fff" stop-opacity=".1"/><stop offset=".8" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity=".5"/></linearGradient>
+<linearGradient id="lm-water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff2b0" stop-opacity=".75"/><stop offset="1" stop-color="#f3d36a" stop-opacity=".75"/></linearGradient>
+<radialGradient id="lm-lemon" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#fff27a"/><stop offset=".7" stop-color="#f6d222"/><stop offset="1" stop-color="#d9a90c"/></radialGradient>
+<radialGradient id="lm-slice"><stop offset="0" stop-color="#fffbd0"/><stop offset=".8" stop-color="#ffe866"/><stop offset="1" stop-color="#f2c418"/></radialGradient>
+<filter id="lm-blur"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="lm-b2"><feGaussianBlur stdDeviation="2"/></filter>
+</defs>
+<rect width="600" height="340" fill="url(#lm-bg)"/>
+<!-- window light & blurred plants -->
+<g filter="url(#lm-blur)"><rect x="380" y="0" width="220" height="190" fill="#fffdf6"/><circle cx="470" cy="150" r="40" fill="#8fbf6a" opacity=".7"/><circle cx="520" cy="130" r="30" fill="#6fa64f" opacity=".7"/><rect x="40" y="20" width="120" height="150" fill="#e7d3b0" opacity=".6"/></g>
+<g stroke="#e8dcc4" stroke-width="6" filter="url(#lm-b2)" opacity=".8"><line x1="380" y1="0" x2="380" y2="190"/><line x1="490" y1="0" x2="490" y2="190"/><line x1="380" y1="95" x2="600" y2="95"/></g>
+<!-- counter -->
+<rect x="0" y="210" width="600" height="130" fill="url(#lm-counter)"/>
+<g stroke="#cfc6b8" stroke-width="2" opacity=".6" fill="none"><path d="M0 250 Q 150 240 300 262 T 600 250"/><path d="M40 300 Q 200 280 360 310"/></g>
+<!-- cutting board -->
+<path d="M60 250 L 250 238 Q 262 260 252 290 L 70 300 Q 52 276 60 250Z" fill="#c99a62"/><path d="M60 250 L 250 238 Q 262 260 252 290 L 70 300 Q 52 276 60 250Z" fill="none" stroke="#a87a45" stroke-width="2"/>
+<!-- whole lemons -->
+<ellipse cx="120" cy="296" rx="44" ry="8" fill="#000" opacity=".12" filter="url(#lm-b2)"/>
+<ellipse cx="118" cy="262" rx="40" ry="30" fill="url(#lm-lemon)"/><circle cx="80" cy="262" r="5" fill="#d9a90c"/>
+<ellipse cx="480" cy="300" rx="46" ry="8" fill="#000" opacity=".12" filter="url(#lm-b2)"/>
+<ellipse cx="478" cy="266" rx="42" ry="32" fill="url(#lm-lemon)" transform="rotate(-15 478 266)"/><path d="M510 240 q 14 -16 30 -12 q -8 16 -30 12" fill="#5d9a3a"/>
+<!-- half lemon -->
+<ellipse cx="200" cy="270" rx="34" ry="16" fill="#f2c418"/><ellipse cx="200" cy="266" rx="31" ry="13" fill="url(#lm-slice)"/>
+<g stroke="#fffbe6" stroke-width="1.5"><line x1="200" y1="266" x2="200" y2="254"/><line x1="200" y1="266" x2="226" y2="266"/><line x1="200" y1="266" x2="174" y2="266"/><line x1="200" y1="266" x2="218" y2="257"/><line x1="200" y1="266" x2="182" y2="257"/><line x1="200" y1="266" x2="218" y2="275"/><line x1="200" y1="266" x2="182" y2="275"/></g>
+<!-- cayenne dish -->
+<ellipse cx="400" cy="300" rx="34" ry="10" fill="#000" opacity=".1" filter="url(#lm-b2)"/>
+<ellipse cx="400" cy="292" rx="32" ry="11" fill="#fff"/><ellipse cx="400" cy="290" rx="24" ry="7" fill="#c0391b"/><ellipse cx="396" cy="288" rx="10" ry="3" fill="#e05a2c" opacity=".7"/>
+<!-- glass shadow -->
+<ellipse cx="300" cy="298" rx="66" ry="12" fill="#000" opacity=".14" filter="url(#lm-b2)"/>
+<ellipse cx="318" cy="300" rx="40" ry="8" fill="#f2c418" opacity=".25" filter="url(#lm-b2)"/>
+<!-- glass -->
+<path d="M246 60 L 354 60 L 344 290 Q 300 302 256 290Z" fill="url(#lm-water)"/>
+<rect x="246" y="58" width="108" height="34" fill="#fffdf2" opacity=".5"/>
+<ellipse cx="300" cy="92" rx="53" ry="7" fill="#fff4bc" opacity=".9"/>
+<!-- slices in glass -->
+<g opacity=".9"><circle cx="282" cy="150" r="30" fill="#f2c418"/><circle cx="282" cy="150" r="26" fill="url(#lm-slice)"/><g stroke="#fffbe6" stroke-width="1.5"><line x1="282" y1="124" x2="282" y2="176"/><line x1="256" y1="150" x2="308" y2="150"/><line x1="264" y1="132" x2="300" y2="168"/><line x1="300" y1="132" x2="264" y2="168"/></g></g>
+<g opacity=".85"><ellipse cx="318" cy="222" rx="28" ry="26" fill="#f2c418"/><ellipse cx="318" cy="222" rx="24" ry="22" fill="url(#lm-slice)"/><g stroke="#fffbe6" stroke-width="1.5"><line x1="318" y1="200" x2="318" y2="244"/><line x1="294" y1="222" x2="342" y2="222"/><line x1="301" y1="206" x2="335" y2="238"/><line x1="335" y1="206" x2="301" y2="238"/></g></g>
+<!-- cayenne specks -->
+<g fill="#c0391b"><circle cx="276" cy="93" r="1.8"/><circle cx="290" cy="90" r="1.5"/><circle cx="304" cy="94" r="2"/><circle cx="318" cy="91" r="1.5"/><circle cx="326" cy="95" r="1.8"/><circle cx="296" cy="120" r="1.4"/><circle cx="312" cy="188" r="1.4"/><circle cx="270" cy="250" r="1.6"/><circle cx="330" cy="270" r="1.4"/><circle cx="286" cy="276" r="1.8"/></g>
+<!-- bubbles -->
+<g fill="none" stroke="#fff" stroke-width="1.2" opacity=".8"><circle cx="262" cy="200" r="3"/><circle cx="268" cy="182" r="2"/><circle cx="336" cy="160" r="2.5"/><circle cx="330" cy="120" r="2"/><circle cx="276" cy="260" r="2.5"/></g>
+<!-- glass outline & highlights -->
+<path d="M246 60 L 256 290 Q 300 302 344 290 L 354 60" fill="url(#lm-glass)" stroke="#fff" stroke-width="2.5" opacity=".95"/>
+<ellipse cx="300" cy="60" rx="54" ry="7" fill="none" stroke="#fff" stroke-width="2.5"/>
+<path d="M256 70 L 264 280" stroke="#fff" stroke-width="6" opacity=".55" stroke-linecap="round"/>
+<path d="M340 80 L 336 200" stroke="#fff" stroke-width="3" opacity=".4" stroke-linecap="round"/>
+<!-- slice on rim -->
+<g transform="rotate(-20 352 70)"><path d="M322 70 A 30 30 0 0 1 382 70Z" fill="#f2c418"/><path d="M326 70 A 26 26 0 0 1 378 70Z" fill="url(#lm-slice)"/><g stroke="#fffbe6" stroke-width="1.5"><line x1="352" y1="70" x2="352" y2="46"/><line x1="352" y1="70" x2="333" y2="56"/><line x1="352" y1="70" x2="371" y2="56"/></g></g>
+<!-- straw -->
+<path d="M318 300 L 372 6" stroke="#ffffff" stroke-width="7" opacity=".0"/>
+</svg>`,
+  crowd: `<svg viewBox="0 0 600 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Grainy nighttime video still of a crowd in a city street with smoke and flashing lights">
+<defs>
+<linearGradient id="cr-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05070d"/><stop offset="1" stop-color="#1b1a28"/></linearGradient>
+<radialGradient id="cr-red" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff2d2d" stop-opacity=".75"/><stop offset="1" stop-color="#ff2d2d" stop-opacity="0"/></radialGradient>
+<radialGradient id="cr-blue" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#2d6bff" stop-opacity=".75"/><stop offset="1" stop-color="#2d6bff" stop-opacity="0"/></radialGradient>
+<radialGradient id="cr-flare" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff2c0"/><stop offset=".25" stop-color="#ff8a2a" stop-opacity=".9"/><stop offset="1" stop-color="#ff5a1a" stop-opacity="0"/></radialGradient>
+<radialGradient id="cr-lamp" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd58a" stop-opacity=".9"/><stop offset="1" stop-color="#ffb347" stop-opacity="0"/></radialGradient>
+<filter id="cr-smoke"><feGaussianBlur stdDeviation="14"/></filter>
+<filter id="cr-soft"><feGaussianBlur stdDeviation="1.4"/></filter>
+<filter id="cr-grain"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="9"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".22"/></feComponentTransfer></filter>
+</defs>
+<g filter="url(#cr-soft)">
+<rect width="600" height="340" fill="url(#cr-sky)"/>
+<!-- buildings -->
+<g fill="#10121b"><rect x="0" y="40" width="130" height="220"/><rect x="120" y="80" width="90" height="180"/><rect x="400" y="60" width="100" height="200"/><rect x="490" y="20" width="110" height="240"/></g>
+<g fill="#151827"><rect x="210" y="110" width="190" height="150"/></g>
+<!-- city hall dome -->
+<path d="M250 110 Q 305 50 360 110Z" fill="#191c2c"/><rect x="300" y="40" width="6" height="30" fill="#191c2c"/>
+<g fill="#22263a"><rect x="232" y="130" width="10" height="110"/><rect x="262" y="130" width="10" height="110"/><rect x="292" y="130" width="10" height="110"/><rect x="322" y="130" width="10" height="110"/><rect x="352" y="130" width="10" height="110"/></g>
+<g fill="#ffcf73" opacity=".75"><rect x="20" y="60" width="14" height="10"/><rect x="50" y="90" width="14" height="10"/><rect x="80" y="60" width="14" height="10"/><rect x="20" y="130" width="14" height="10"/><rect x="140" y="100" width="12" height="9"/><rect x="170" y="130" width="12" height="9"/><rect x="420" y="80" width="14" height="10"/><rect x="460" y="120" width="14" height="10"/><rect x="510" y="40" width="14" height="10"/><rect x="560" y="70" width="14" height="10"/><rect x="540" y="130" width="14" height="10"/></g>
+<!-- street lamps -->
+<g stroke="#2a2d3a" stroke-width="4"><line x1="190" y1="90" x2="190" y2="250"/><line x1="420" y1="90" x2="420" y2="250"/></g>
+<circle cx="190" cy="90" r="40" fill="url(#cr-lamp)"/><circle cx="420" cy="90" r="40" fill="url(#cr-lamp)"/>
+<!-- police glow -->
+<ellipse cx="90" cy="220" rx="150" ry="110" fill="url(#cr-red)"/>
+<ellipse cx="520" cy="220" rx="160" ry="110" fill="url(#cr-blue)"/>
+<!-- smoke -->
+<g filter="url(#cr-smoke)"><ellipse cx="300" cy="190" rx="170" ry="50" fill="#8a8aa0" opacity=".45"/><ellipse cx="200" cy="160" rx="90" ry="40" fill="#b07a6a" opacity=".35"/><ellipse cx="430" cy="170" rx="100" ry="40" fill="#6a7aa8" opacity=".35"/></g>
+<!-- flares -->
+<circle cx="250" cy="186" r="40" fill="url(#cr-flare)"/><circle cx="378" cy="196" r="32" fill="url(#cr-flare)"/>
+<!-- crowd: back row -->
+<g fill="#07080c">
+<path d="M0 340 L 0 250 Q 10 236 22 248 Q 34 232 48 246 Q 60 236 72 250 Q 86 230 100 248 Q 114 238 126 252 Q 140 232 154 250 Q 168 238 180 252 Q 196 228 210 248 Q 224 236 236 250 Q 250 230 266 248 Q 280 238 292 252 Q 306 232 320 248 Q 334 236 348 250 Q 362 230 376 248 Q 390 238 402 252 Q 416 232 430 248 Q 444 236 456 252 Q 470 230 486 248 Q 500 238 512 252 Q 526 232 540 248 Q 554 236 566 250 Q 580 232 600 248 L 600 340Z"/>
+</g>
+<!-- raised arms / phones -->
+<g stroke="#07080c" stroke-width="7" stroke-linecap="round"><line x1="60" y1="250" x2="48" y2="196"/><line x1="160" y1="252" x2="174" y2="200"/><line x1="250" y1="250" x2="250" y2="200"/><line x1="340" y1="250" x2="352" y2="206"/><line x1="470" y1="250" x2="458" y2="198"/><line x1="560" y1="250" x2="572" y2="204"/></g>
+<g fill="#cfe4ff"><rect x="166" y="186" width="10" height="16" rx="2"/><rect x="452" y="184" width="10" height="16" rx="2"/></g>
+<g fill="#ffffff" opacity=".9"><circle cx="171" cy="190" r="2"/><circle cx="457" cy="188" r="2"/></g>
+<!-- front row heads -->
+<g fill="#030407"><ellipse cx="40" cy="300" rx="32" ry="38"/><ellipse cx="130" cy="310" rx="30" ry="36"/><ellipse cx="230" cy="296" rx="34" ry="40"/><ellipse cx="340" cy="306" rx="30" ry="36"/><ellipse cx="450" cy="298" rx="34" ry="40"/><ellipse cx="560" cy="306" rx="32" ry="38"/><rect x="0" y="320" width="600" height="20"/></g>
+<!-- rim light on heads -->
+<g fill="none" stroke-width="2" opacity=".5"><path d="M10 290 Q 16 266 36 262" stroke="#ff4d4d"/><path d="M200 286 Q 206 262 226 256" stroke="#ff8a2a"/><path d="M482 288 Q 478 264 458 258" stroke="#4d7dff"/><path d="M590 296 Q 586 272 566 268" stroke="#4d7dff"/></g>
+</g>
+<rect width="600" height="340" filter="url(#cr-grain)"/>
+</svg>`,
+};
+
+/* ================= TEACHER SETTINGS ================= */
+const POSTS_PER_GAME = 12;   // how many posts each student sees (bank has 60)
+const MIN_FALSE = 5, MAX_FALSE = 7;  // range of untrue (False + Misleading) posts per game
+const MODE_LOCK = null;      // null = students choose a mode; 'basic' or 'advanced' = force that mode
+
+const L=(domain,headline,color,banner)=>({kind:'link',domain,headline,color,banner});
+const PH=(img,fallback,desc)=>({kind:'photo',img,fallback,desc});
+const VID=(img,label,time,desc,fallback)=>({kind:'video',img,label,time,desc,fallback});
+/* Evidence: [weight, source line, text]   weight 3 = smoking gun, 1 = helpful, 0 = not decisive */
+
+const POSTS = [
+/* 1 */ {a:'T', type:'Local News', name:'The Ridgeline Courier', handle:'@RidgelineCourier', av:['RC','#7a1f2b'], v:1, time:'3h',
+  text:`City Council voted 5–2 Tuesday night to add three new bus routes connecting east-side neighborhoods to Ridgeline Community College, starting in March. Full story and vote breakdown 👇`,
+  media:L('ridgelinecourier.com','Council approves 3 new bus routes to community college','#7a1f2b','THE RIDGELINE COURIER'), stats:[312,88,41],
+  ev:{source:[[0,'Account profile','Joined 2010 · 48K followers · 312 likes on this post.'],[1,'About page','Published since 1921. Website lists editors\' names, a newsroom address and phone number, and a Corrections page.']],
+      search:[[3,'ridgelinecity.gov › Meeting minutes, Nov. 10','"Motion to approve Transit Expansion Plan (Routes 14, 15, 16). Passed 5–2."'],[1,'krdg7.com','"New bus routes coming to Ridgeline\'s east side." Council members split over cost but approved the plan.']],
+      inspect:[[1,'The article','Has a reporter\'s byline (Dana Whitfield), a date, and quotes from council members who voted yes and no.']]},
+  explain:`The <b>primary source</b>, the official council minutes, confirms the exact vote. An established outlet with a corrections policy reported it, and another outlet independently confirms it.`},
+
+/* 2 */ {a:'F', type:'Family', name:'Linda Morales', handle:'Your aunt', av:['LM','#b0558f'], time:'2h',
+  text:`⚠️ IMPORTANT!!! Starting Monday ALL phone calls and text messages will be recorded by the government under a new communications rule. Do NOT send anything political!!
+
+My friend's son works for the phone company and confirmed it. COPY AND PASTE, don't share — they are blocking shares!!! 🙏🇺🇸`, stats:[54,0,23],
+  ev:{source:[[0,'Profile','Aunt Linda is a retired dental hygienist. She mostly posts garden photos.'],[1,'Search: exact wording','The identical message appears word-for-word on thousands of accounts.']],
+      search:[[3,'nonpartisanfactcheck.org (2021)','The same "starting Monday, calls will be recorded" message has circulated since at least 2020, each time claiming it begins "Monday" or "tomorrow."'],[1,'federalregister.gov','Search for a new rule on recording calls or texts: 0 results.']],
+      inspect:[[1,'The claim','Source given: "my friend\'s son." No rule name, number, or agency.'],[0,'The claim','Uses a U.S. flag and prayer-hands emoji.'],[1,'U.S. Constitution, 4th Amendment','"The right of the people to be secure… against unreasonable searches and seizures, shall not be violated, and no Warrants shall issue, but upon probable cause…"']]},
+  explain:`A recycled <b>chain-message hoax</b>. A rule that has been "starting Monday" for six years isn't starting Monday. It names no specific source, and no official record exists.`},
+
+/* 3 */ {a:'T', type:'Politician', name:'Sen. Maria Okafor', handle:'@SenOkafor', av:['MO','#2c4a8a'], v:1, gov:1, time:'5h',
+  text:`Today the Senate passed the Rural Broadband Access Act 68–30 with support from both parties. That's $12 billion to bring high-speed internet to rural communities. Proud to have co-sponsored this bill! Next stop: the House. 🏛️`,
+  media:L('congress.gov','S. 1442 — Rural Broadband Access Act: All Actions','#1f3864','CONGRESS.GOV'), stats:[2100,640,380],
+  ev:{source:[[1,'Profile','Official U.S. Senate office account, linked from her senate.gov website.'],[0,'Profile','Sen. Okafor is up for reelection in two years.']],
+      search:[[3,'congress.gov › Roll Call Vote #217','S. 1442: Yea 68 · Nay 30 · Not voting 2. Yes votes came from members of both parties.'],[1,'associatedwire.com','"Senate passes rural broadband bill, 68–30." The bill would spend $12 billion over five years.']],
+      inspect:[[1,'Bill text, Sec. 4','Authorizes $12 billion over fiscal years 2027–2031.'],[0,'The post','Uses the word "Proud" and an emoji.']]},
+  explain:`Politicians are biased sources, but every <b>factual claim</b> here matches the official roll-call vote and bill text. Being from a politician doesn't automatically make something false.`},
+
+/* 4 */ {a:'F', type:'News', name:'NBN News Updates', handle:'@NBN_newsupdates', av:['NBN','#1d4ed8'], time:'1h',
+  text:`HUGE: It's official. The voting age is going UP. Do you agree?? 🗳️👇`,
+  media:L('nbnnews.com.co','Supreme Court Rules 5–4: Voting Age Raised to 21 Starting Next Election','#1d4ed8','NBN NEWS · BREAKING'), stats:[8900,5200,3100],
+  ev:{source:[[1,'Profile','Created 5 weeks ago · 1,200 followers.'],[1,'Search: NBN','The National Broadcast News account @NBNNews has 12 million followers and has posted nothing about the voting age.']],
+      search:[[1,'News search: "voting age 21"','No other outlet is reporting this.'],[1,'supremecourt.gov › Docket','No case involving the voting age is on the docket this term.']],
+      inspect:[[1,'The link','Domain: nbnnews.com.co. National Broadcast News\'s website is nbnnews.com.'],[1,'Site "About" page','"Stories may be fabricated for entertainment purposes."'],[3,'U.S. Constitution, 26th Amendment (1971)','"The right of citizens of the United States, who are eighteen years of age or older, to vote shall not be denied or abridged… on account of age."']]},
+  explain:`It's <b>constitutionally impossible</b>. The 26th Amendment guarantees the vote at 18, and the Supreme Court can't change that; it would take a new amendment. It's also an <b>impostor site</b> with a knockoff URL.`},
+
+/* 5 */ {a:'T', type:'Classmate', name:'Jess Park', handle:'@jesspark_07', av:['JP','#0f766e'], time:'25m',
+  text:`Highway 9 is CLOSED southbound at Exit 22 bc of a crash 😩 took us 40 min to turn around. Take Route 4 if you're going to the game tonight!!`,
+  media:PH('highway-crash.jpg','traffic','Phone photo: stopped traffic on a highway, police lights ahead'), stats:[37,19,8],
+  ev:{source:[[1,'Profile','Jess is in your Government class. Her post says she was there.'],[0,'Profile','Jess posted 14 times this week, mostly about volleyball.']],
+      search:[[3,'@StateDOT_Traffic · 30m','"CRASH: Hwy 9 SB closed at Exit 22. Expect major delays. Use alternate routes."'],[1,'Live traffic map','Highway 9 southbound shows stopped traffic from Exit 20 to Exit 22.']],
+      inspect:[[1,'Reverse image search','No earlier copies of this photo exist online.'],[0,'The post','Contains abbreviations and emoji.']]},
+  explain:`A firsthand eyewitness made an ordinary, specific claim, and an <b>official source</b> (the state DOT) confirms it. Posts from regular people aren't automatically unreliable.`},
+
+/* 6 */ {a:'F', type:'Breaking News', name:'BreakingNewsNOW247', handle:'@BreakingNOW247', av:['BN','#dc2626'], v:1, time:'40m',
+  text:`🚨 INSANE footage from Hurricane Delia — SHARKS swimming through the flooded Port Charles airport!!! 🦈😱 RT to warn others!!`,
+  media:PH('flood-airport.jpg','flood','Photo: flooded airport terminal with a shark fin in the water'), stats:[91000,48000,6200],
+  ev:{source:[[1,'Profile','Created 3 weeks ago. Posts dozens of "breaking" items a day, none with links.'],[0,'Profile','Has a blue checkmark (available to anyone with a $8/month subscription).']],
+      search:[[1,'@PortCharlesAirport (official)','"Lower-level terminal flooded; all flights canceled. Crews are pumping water." No mention of animals.'],[0,'National Weather Service','Hurricane Delia made landfall near Port Charles on Tuesday as a Category 2 storm.']],
+      inspect:[[3,'Reverse image search','Earliest match: the same terminal photo from 2012, from a different storm, with no shark in it.'],[1,'Zoom in','The fin\'s lighting and ripples don\'t match the rest of the water.']]},
+  explain:`A real disaster paired with a <b>doctored, recycled image</b>. The reverse image search finds the original photo with no shark. Checkmarks and share counts say nothing about accuracy.`},
+
+/* 7 */ {a:'T', type:'Local TV News', name:'KRDG Channel 7', handle:'@KRDG7News', av:['7','#ea580c'], v:1, time:'6h',
+  text:`17-year-old Jaylen Brooks, a senior at Ridgeline High, won a seat on the Ridgeline School Board Tuesday, beating two adult candidates. 🎓🗳️ Brooks turns 18 in December, before taking office.`,
+  media:L('krdg7.com','Ridgeline High senior, 17, wins school board seat','#ea580c','KRDG 7 NEWS'), stats:[4300,1200,860],
+  ev:{source:[[1,'About page','Licensed local TV station on the air 30+ years. Lists reporters and a corrections policy.'],[0,'Replies','Dozens of comments say "no way this is real" and "fake news."']],
+      search:[[3,'carvercounty.gov › Official Results','Ridgeline School Board, Seat 3 — Jaylen Brooks, 41.2% · <b>Winner</b>'],[1,'ridgelinecourier.com','"Teen candidate tops field in school board race."']],
+      inspect:[[1,'Westmont Election Code § 9-104','"A candidate shall be at least eighteen years of age on the date of taking office."']]},
+  explain:`<b>Surprising doesn't mean fake.</b> The official county results confirm it, and state law explains how a 17-year-old could run.`},
+
+/* 8 */ {a:'F', type:'Family', name:'Tyler Morales', handle:'Your cousin', av:['TM','#7c3aed'], time:'1h', shared:'Tyler shared a post from <b>The Daily Spud</b>',
+  text:`wait is this real?? 💀 i literally cannot pass a civics test`,
+  media:L('thedailyspud.com','New Federal Law Requires All 16-Year-Olds to Pass Civics Test Before Getting Driver\'s License','#a16207','THE DAILY SPUD'), stats:[210,96,140],
+  ev:{source:[[3,'The Daily Spud — profile bio','"America\'s Finest Potato-Based News Source. Satire. Nothing here is real. Est. 2009."'],[0,'Tyler\'s profile','Tyler is a junior at Ridgeline High.']],
+      search:[[1,'News search','No news outlet reports any such law.'],[1,'Westmont DMV website','Driver\'s licenses are issued by the State of Westmont. Requirements: age 16, written test, road test, 50 practice hours.']],
+      inspect:[[1,'Other headlines on the site','"Local Man Elected President of His Own Couch" · "Area Dog Files for Bankruptcy"']]},
+  explain:`It's <b>satire</b>, and the site says so in its bio. Satire shared without context gets taken as real. Federalism is a clue too: <b>states</b>, not Congress, issue driver's licenses.`},
+
+/* 9 */ {a:'T', type:'Blogger', name:'The Ridgeline Ledger', handle:'Priya Nandakumar · newsletter', av:['PN','#4d7c0f'], time:'1d',
+  text:`I filed a public records request with the Ridgeline School District. The documents show the district paid $40,500 to an outside consulting firm for a "branding refresh" last spring.
+
+I've posted all 23 pages of invoices so you can read them yourself. The district's response is included.`,
+  media:L('ridgelineledger.news','What $40,500 bought: the school district\'s branding invoices','#4d7c0f','THE RIDGELINE LEDGER'), stats:[980,410,265],
+  ev:{source:[[1,'About page','Priya Nandakumar covered education for the Ridgeline Courier for 11 years. Posts corrections publicly.'],[0,'Profile','Newsletter has 3,200 subscribers.']],
+      search:[[3,'ridgelineschools.org › Board agenda, April 8','Consent item 7c: "Approve payment of $40,500 to Crestview Strategies, LLC."'],[1,'ridgelinecourier.com','A district spokesperson confirmed the $40,500 amount but called it "a long-overdue update."']],
+      inspect:[[1,'The article','Links to the 23 pages of original invoices.'],[1,'The article','Includes the district\'s full written response.']]},
+  explain:`Bloggers <i>can</i> be reliable. Judge them by <b>evidence and transparency</b>. The school board's own agenda confirms the payment. Whether it was wasteful is opinion, but the facts are solid.`},
+
+/* 10 */ {a:'F', m:1, type:'Influencer', name:'Natural Mama Wellness', handle:'@TruthSeekerMama', av:['NM','#db2777'], time:'4h',
+  text:`A NEW STUDY PROVES school Wi-Fi is causing the ADHD epidemic in our kids. 😡 The schools KNOW and won't tell you.
+
+I've protected my family with our EMF Shield bracelets 💎 (link in bio — 20% off with code SAFEKIDS)`,
+  media:L('ijwf-journal.net','Wireless exposure and attention in children: a parent survey','#9d174d','INT\'L JOURNAL OF WELLNESS FRONTIERS'), stats:[6400,3900,1100],
+  ev:{source:[[1,'Link in bio','Shop page: "EMF Shield Bracelet — $39.99." No medical or science training listed.'],[0,'Profile','210K followers.']],
+      search:[[1,'sciencenewsdesk.org','The study was an online survey of 40 parents, with no comparison group, in a journal that charges authors to publish.'],[1,'American Academy of Pediatricians (summary)','"Current research does not show that school Wi-Fi causes ADHD."']],
+      inspect:[[3,'The study\'s own conclusion','"Further research is needed. No causal relationship can be established from these data."']]},
+  explain:`The study <b>itself says</b> it proves no cause, so the post's "PROVES" is false. The author also profits from your fear. Trace claims to the original.`},
+
+/* 11 */ {a:'F', m:1, type:'Campaign', name:'Dale Brenner for Governor', handle:'@BrennerForGov', av:['DB','#334155'], v:1, time:'8h',
+  text:`CRIME HAS DOUBLED since Governor Hayes took office. Our families are NOT safe. It's time for change. #TakeBackOurState`,
+  media:{kind:'svg', svg:'chart'}, stats:[12000,7300,4100],
+  ev:{source:[[1,'Profile','Campaign account (not an official government office). Brenner is challenging Gov. Hayes next year.'],[0,'Profile','Brenner is a state representative in his third term.']],
+      search:[[3,'Westmont Bureau of Investigation — Annual Crime Report','Total reported crime statewide during Gov. Hayes\'s term: <b>down 4%</b>.'],[1,'ridgelinecourier.com','A Brenner spokesperson said the chart shows car break-ins at one Millbrook shopping mall, which rose from 12 to 24.']],
+      inspect:[[1,'The chart','No source, no years, no location, and no label saying what is being counted.']]},
+  explain:`Official statewide data shows crime <b>went down</b>. The 12 → 24 is one category at one mall. That's <b>cherry-picking</b>: real numbers used for a false claim.`},
+
+/* 12 */ {a:'T', type:'National News', name:'Associated Wire Service', handle:'@AssociatedWire', av:['AW','#111827'], v:1, time:'2h',
+  text:`U.S. employers added 155,000 jobs in October and the unemployment rate held steady at 4.2%, the Labor Department reported Friday.`,
+  media:L('associatedwire.com','Hiring steady in October as unemployment holds at 4.2%','#111827','ASSOCIATED WIRE'), stats:[1500,700,290],
+  ev:{source:[[1,'About page','Wire service supplying stories to 1,300+ outlets of all political leanings. Publishes corrections.'],[0,'Profile','Has a checkmark.']],
+      search:[[3,'dol.gov › The Employment Situation — October','Payroll employment rose by 155,000; unemployment rate unchanged at 4.2%.'],[1,'Several outlets','Left- and right-leaning outlets report the same numbers but frame them differently ("solid growth" vs. "hiring slows").']],
+      inspect:[[1,'The post','Neutral wording; credits the Labor Department as the source.']]},
+  explain:`The numbers match the <b>primary source</b>, the Labor Department release. Outlets may spin facts differently, but here the facts are consistent.`},
+
+/* 13 */ {a:'F', type:'Family', name:'Ray Morales', handle:'Your uncle', av:['RM','#92400e'], time:'3h', shared:'Ray shared a post from <b>The Real Truth Network</b>',
+  text:`Can you BELIEVE this?!? Unbelievable. 🤬`,
+  media:{kind:'quote', quote:`If working families can't afford groceries, maybe they should try eating less.`, att:'— Governor Elaine Hayes'}, stats:[22000,15000,5800],
+  ev:{source:[[1,'The Real Truth Network — page transparency','Created this year. No named people. Managed from several countries.'],[0,'Ray\'s profile','Uncle Ray shares 5–10 political posts a day.']],
+      search:[[3,'News archives, speech transcripts & video search','Exact quote: 0 results anywhere before this image appeared 4 days ago.'],[1,'Governor\'s press office','"The Governor has never said this."']],
+      inspect:[[1,'The image','No date, event, or video, just text on a dark background.']]},
+  explain:`A <b>fabricated quote</b>. Real quotes leave a trail of transcripts, video, and coverage; this one has none. (The governor's denial is helpful, but she's not a neutral source.)`},
+
+/* 14 */ {a:'T', type:'Government', name:'Westmont Dept. of Health', handle:'@WestmontHealth', av:['DH','#0e7490'], v:1, gov:1, time:'5h',
+  text:`Public health alert: A confirmed case of measles has been identified in Carver County. The person visited Lakeview Mall on Nov. 8 between 2–6 p.m. If you were there and are not vaccinated, contact your healthcare provider. Symptoms and next steps 👇`,
+  media:L('health.westmont.gov','Measles exposure notice — Carver County','#0e7490','WESTMONT DEPARTMENT OF HEALTH'), stats:[860,1900,140],
+  ev:{source:[[1,'Profile','Government-labeled account, active since 2011. Links to health.westmont.gov (.gov domains are only available to government bodies).'],[0,'The post','Shared 1,900 times.']],
+      search:[[3,'krdg7.com & ridgelinecourier.com','Both independently report the alert, quoting the Health Department and the hospital that confirmed the case.'],[1,'health.westmont.gov','The department\'s alert page lists the same date, place, and times.']],
+      inspect:[[1,'The post','Gives specific, checkable details and tells you what to do; doesn\'t pressure you to share.']]},
+  explain:`An official .gov source with specific, calm information, <b>confirmed independently</b> by two local outlets.`},
+
+/* 15 */ {a:'F', m:1, type:'Friend', name:'Marcus Bell', handle:'@marcus.bell', av:['MB','#1e3a8a'], time:'50m',
+  text:`this is so bad for our town 😢😢 my uncle used to work there. share so people know`,
+  media:L('ridgelinecourier.com','Hollis Manufacturing to close Ridgeline plant; 2,000 jobs lost','#7a1f2b','THE RIDGELINE COURIER'), stats:[1300,2200,410],
+  ev:{source:[[0,'Profile','Marcus is your friend; his uncle used to work at Hollis.'],[0,'The link','Goes to ridgelinecourier.com, the real Courier website.']],
+      search:[[1,'ridgelinecourier.com (2019)','"Hollis plant reopens under new owner; 1,200 jobs return."'],[1,'News search: this week','No outlet reports a new plant closure.']],
+      inspect:[[3,'Open the article','Dated <b>March 14, 2014</b>. (The link preview doesn\'t show a date.)']]},
+  explain:`A real article from a real outlet, but it's <b>more than ten years old</b>. Old news shared as new is very common. Always check the date.`},
+
+/* 16 */ {a:'F', type:'Advocacy Group', name:'Voter Truth Alliance', handle:'@VoterTruthAlliance', av:['VT','#b91c1c'], time:'2h',
+  text:`🚨 LEAKED: Senate candidate Rosa Delgado caught on a hot mic saying she'll "end gas cars by 2028 no matter what voters want." WATCH before it gets taken down!!`,
+  media:VID('delgado-video.jpg','LEAKED','0:38','Video: candidate speaking at a podium','video'), stats:[38000,21000,9400],
+  ev:{source:[[1,'Profile','No named people, address, or contact info. Created 2 months ago. Posts only about this Senate race.'],[0,'The video','38K likes, 1.2M views.']],
+      search:[[3,'krdg7.com › Full livestream, Oct. 30 town hall','In the complete, unedited broadcast, Delgado discusses electric <i>city buses</i>. The quoted sentence never appears.'],[1,'associatedwire.com','Two independent audio experts found signs of AI-cloned audio in the clip.']],
+      inspect:[[1,'Watch closely','Lips don\'t quite match the words; background noise cuts out when the quote starts.']]},
+  explain:`A <b>deepfake</b>. A neutral outlet's full recording shows she never said it. As AI improves, finding the original source matters more than spotting glitches.`},
+
+/* 17 */ {a:'T', type:'School District', name:'Ridgeline School District', handle:'@RidgelineSchools', av:['RSD','#065f46'], v:1, gov:1, time:'1h',
+  text:`Due to a water main break near Ridgeline High School, RHS will dismiss at 11:30 a.m. today. Buses will run at that time. All other schools are on a normal schedule. Updates at ridgelineschools.org.`, stats:[640,820,95],
+  ev:{source:[[1,'Profile','Official district account, linked from ridgelineschools.org.'],[0,'The post','Posted at 7:42 a.m.']],
+      search:[[3,'Ridgeline Water Dept. (@RidgelineWater)','"Crews responding to a water main break on Elm St. Service interrupted to Ridgeline High and nearby homes."'],[1,'ridgelineschools.org','Homepage banner shows the same early-dismissal notice.']],
+      inspect:[[1,'The post','Specific details; directs people to the official website for updates.']]},
+  explain:`A <b>separate official source</b> (the water department) confirms the cause, and the district website matches the post.`},
+
+/* 18 */ {a:'T', type:'Science Magazine', name:'Skyward Science', handle:'@SkywardSci', av:['SS','#312e81'], v:1, time:'9h',
+  text:`An asteroid about the size of a bus will pass between Earth and the Moon on Friday. 🌍☄️🌕 Scientists say there's zero chance of impact — and you'll need a telescope to see it.`,
+  media:L('skywardscience.com','Bus-sized asteroid to zip between Earth and Moon Friday','#312e81','SKYWARD SCIENCE'), stats:[12000,3400,700],
+  ev:{source:[[1,'About page','Science magazine since 1985; writers listed with science degrees.'],[0,'Replies','Several replies say "we\'re all going to die."']],
+      search:[[3,'National Space Agency › Planetary Defense','Asteroid 2026 VX: closest approach Friday at 0.6 lunar distances. Impact probability: 0.'],[1,'Other outlets','Several science outlets report the same, noting that this happens a few times a year.']],
+      inspect:[[1,'The article','Calm headline; quotes two astronomers by name.']]},
+  explain:`It sounds dramatic, but the <b>space agency's own tracking data</b> confirms it. Scary-sounding isn't the same as false.`},
+
+/* 19 */ {a:'T', type:'Politician', name:'Gov. Elaine Hayes', handle:'@GovHayes', av:['EH','#7f1d1d'], v:1, gov:1, time:'7h',
+  text:`Today I signed HB 210, raising starting teacher pay in Westmont to $48,000 beginning next school year. Thank you to the legislators who made this happen! 🍎`,
+  media:PH('hayes-signing.jpg','signing','Photo: the governor signing a bill at a desk, surrounded by teachers'), stats:[5300,1100,2400],
+  ev:{source:[[1,'Profile','Official governor\'s office account with government label.'],[0,'Profile','Hayes is running for reelection next year.']],
+      search:[[3,'legis.westmont.gov › HB 210','Status: <b>Signed by Governor, Nov. 10.</b> Sets minimum starting teacher salary at $48,000, effective July 1.'],[1,'ridgelinecourier.com','"Hayes signs teacher pay bill; critics question cost."']],
+      inspect:[[1,'Reverse image search','Same photo appears in the governor\'s official press release and in Courier coverage.']]},
+  explain:`The <b>legislature's official bill record</b> confirms it. A governor bragging about a bill-signing is spin, but the facts are true.`},
+
+/* 20 */ {a:'T', type:'Family', name:'Walt Morales', handle:'Your grandpa', av:['WM','#57534e'], time:'4h',
+  text:`Good news for us old folks! Social Security checks going up 2.6% in January. The SSA just announced it 👍`,
+  media:L('ssa.gov','Cost-of-Living Adjustment (COLA) Information','#1e3a5f','SOCIAL SECURITY ADMINISTRATION'), stats:[18,3,6],
+  ev:{source:[[0,'Profile','Grandpa Walt, retired machinist. Last year he shared a hoax about a "free cruise."'],[1,'The link','Goes to ssa.gov.']],
+      search:[[3,'ssa.gov › News release','"Social Security benefits will increase 2.6% beginning in January."'],[1,'associatedwire.com','"Social Security recipients to get 2.6% raise in January."']],
+      inspect:[[0,'The post','Short, casual, uses an emoji.']]},
+  explain:`Grandpa has shared a hoax before, but <b>this</b> claim matches the official agency announcement. Judge the claim, not just the person's track record.`},
+
+/* 21 */ {a:'T', type:'Public Radio', name:'Westmont Public Radio', handle:'@WestmontPR', av:['WPR','#0c4a6e'], v:1, time:'2h',
+  text:`BREAKING: The Westmont Supreme Court ruled 4–3 that the state's new legislative district map violates the state constitution's limits on splitting counties. The Legislature must redraw the map by March 1.`,
+  media:L('westmontpublicradio.org','State Supreme Court strikes down legislative map, orders redraw','#0c4a6e','WESTMONT PUBLIC RADIO'), stats:[2600,1800,950],
+  ev:{source:[[1,'About page','Public radio newsroom; editorial independence policy and corrections page.'],[0,'The post','Uses "BREAKING" in all caps.']],
+      search:[[3,'courts.westmont.gov › Opinion No. 2026-114','<i>Allen v. Westmont Redistricting Comm\'n</i>: map held unconstitutional, 4–3. Legislature ordered to adopt a new map by March 1.'],[1,'Associated Wire & Courier','Both report the ruling, with reactions from lawmakers in both parties.']],
+      inspect:[[1,'Westmont Constitution, Art. IV §3','"No county shall be divided between districts except as necessary to achieve equal population."']]},
+  explain:`The <b>court's own published opinion</b> confirms it. This is judicial review in action: a court striking down a law that conflicts with the constitution.`},
+
+/* 22 */ {a:'T', type:'Local News', name:'Millbrook Gazette', handle:'@MillbrookGazette', av:['MG','#78350f'], time:'1d',
+  text:`Millbrook's town council race was decided by a coin toss Thursday after both candidates finished with exactly 1,212 votes, even after a recount. 🪙 State law says exact ties are settled "by lot."`,
+  media:L('millbrookgazette.com','Coin flip decides Millbrook council seat after dead-even recount','#78350f','MILLBROOK GAZETTE'), stats:[1900,1400,620],
+  ev:{source:[[1,'About page','Weekly paper since 1958; editor and reporters named.'],[0,'Profile','Only 3,100 followers.']],
+      search:[[3,'Carver County Election Board › Certified results','Millbrook Council Seat 2: 1,212 – 1,212 after recount. "Winner determined by lot in accordance with state law."'],[1,'krdg7.com','Video of the coin toss at the county building.']],
+      inspect:[[1,'Westmont Election Code § 12-301','"If two or more candidates receive an equal and highest number of votes, the winner shall be determined by lot."']]},
+  explain:`It sounds like a joke, but the <b>certified county results</b> and state law confirm it. Small outlets can be accurate, too.`},
+
+/* 23 */ {a:'T', type:'Community Group', name:'Danielle Ortiz', handle:'in Ridgeline Parents Network', av:['DO','#9333ea'], time:'3h',
+  text:`PSA: GreenLeaf brand bagged baby spinach is being recalled for possible listeria. Check your fridge! Lot codes are in the link. 🥬`,
+  media:L('fda.gov','GreenLeaf Farms Recalls Baby Spinach Because of Possible Health Risk','#1e40af','U.S. FOOD & DRUG ADMINISTRATION'), stats:[140,310,52],
+  ev:{source:[[0,'Profile','Danielle is a parent in the group; not a health professional.'],[1,'The link','Goes to fda.gov.']],
+      search:[[3,'fda.gov › Recalls','"GreenLeaf Farms is voluntarily recalling 10 oz. bags of baby spinach (lots 4471–4479) due to possible Listeria contamination."'],[1,'greenleaffarms.com','The company\'s homepage posts the same recall notice.']],
+      inspect:[[1,'The post','Lot codes in the post match those on the FDA page.']]},
+  explain:`A regular parent shared accurate information that matches the <b>FDA's official recall notice</b>.`},
+
+/* 24 */ {a:'T', type:'Expert', name:'Dr. Alan Whitcomb', handle:'@ProfWhitcomb · Economics, Westmont State', av:['AW','#155e75'], time:'5h',
+  text:`Gas prices in Westmont fell 18 cents per gallon over the past month, according to the state energy office's weekly survey. That's mostly due to lower crude oil prices, not any state policy.`, stats:[420,190,88],
+  ev:{source:[[1,'Westmont State faculty page','Professor of Economics; research on energy markets.'],[0,'Profile','900 followers.']],
+      search:[[3,'Westmont Energy Office › Weekly Fuel Price Survey','Statewide average: $3.12 four weeks ago → $2.94 this week (–18¢).'],[1,'Energy Information Administration','Crude oil prices fell about 9% over the same period.']],
+      inspect:[[1,'The post','Names its data source and separates the data from his explanation.']]},
+  explain:`An expert cites a <b>specific official data source</b>, and it checks out. The "why" is his analysis, which is supported by the crude oil data.`},
+
+/* 25 */ {a:'F', type:'Friend', name:'Destiny Clark', handle:'@destinyc', av:['DC','#be185d'], time:'30m',
+  text:`omg finally you can vote by TEXT 🙌🙌 sharing so everyone knows!!`,
+  media:{kind:'sms', from:'Text Message · (555) 019-4482', body:'WESTMONT ELECTION ALERT: Due to long lines, voters may now cast ballots by text. Reply with your candidate\'s name to 55-VOTE (558683). Msg & data rates may apply.'}, stats:[260,540,77],
+  ev:{source:[[1,'The text message','Sent from a regular 10-digit phone number, not a government account.'],[0,'Destiny\'s profile','Destiny is a senior who just registered to vote.']],
+      search:[[3,'Carver County Clerk › Elections','"Votes cannot be cast by text, phone, or email. If you receive a message saying otherwise, report it to our office."'],[1,'Westmont Election Code','Ballots may be cast in person, by mail, or at an official drop box.']],
+      inspect:[[1,'The message','Asks you to reply with your candidate\'s name and phone number data.']]},
+  explain:`A <b>voter-suppression scam</b>. The county election office says plainly that you can't vote by text. People who "vote" this way haven't voted at all.`},
+
+/* 26 */ {a:'F', type:'Watchdog Group', name:'Taxpayer Watchdog USA', handle:'@TaxWatchdogUSA', av:['TW','#4338ca'], time:'6h',
+  text:`This is the $9 MILLION lake mansion Sen. Maria Okafor bought last month. 🏰 On a senator's salary?? Where did the money come from?? 🤔`,
+  media:PH('okafor-mansion.jpg','mansion','Photo: aerial view of a huge lakefront mansion with a pool and private dock'), stats:[31000,19000,7700],
+  ev:{source:[[1,'Profile','Anonymous; created in September. Nearly every post criticizes Sen. Okafor.'],[0,'Profile','55K followers.']],
+      search:[[3,'Lake County property records','Maria Okafor owns one property: a 3-bedroom house assessed at $410,000, purchased in 2009. No recent purchases.'],[1,'Senate financial disclosure','Lists one home and no other real estate.']],
+      inspect:[[1,'Reverse image search','Same image found on an AI art gallery, posted two months ago, titled "Dream Lake House."'],[1,'Zoom in','Dock posts blend into the water; window sizes don\'t match.']]},
+  explain:`<b>Property records</b> show she bought no mansion. The image is AI-generated, but note that a fake picture alone wouldn't prove the <i>claim</i> false. The records do.`},
+
+/* 27 */ {a:'F', type:'Friend', name:'Brandon Lee', handle:'@brandonlee', av:['BL','#0369a1'], time:'15m',
+  text:`NO SCHOOL TOMORROW LETS GOOO 🎉🎉🎉`,
+  media:{kind:'shot', html:`<div class="sh"><div class="av" style="background:#ea580c;width:32px;height:32px;font-size:.8rem">7</div><div><b>KRDG Channel 7</b> <span style="color:#6b7280">@KRDG7News</span></div></div><div class="sb">BREAKING: All Ridgeline schools will be CLOSED tomorrow due to a gas leak at the district office. Stay safe!</div><div class="st">13:72 PM · Nov 12</div>`}, stats:[880,1300,240],
+  ev:{source:[[0,'Profile','Brandon has posted about wanting a day off three times this week.'],[1,'It\'s a screenshot','There\'s no link to the original post, just an image of it.']],
+      search:[[3,'@KRDG7News (the real account)','No such post exists. Latest post: Friday night football scores.'],[1,'ridgelineschools.org','"All schools open on a normal schedule tomorrow."']],
+      inspect:[[1,'Zoom in on the screenshot','Timestamp reads "13:72 PM." The font is different from the platform\'s real font.']]},
+  explain:`A <b>fake screenshot</b>. Screenshots are easy to fabricate, so always go to the real account. Here, the post doesn't exist.`},
+
+/* 28 */ {a:'F', type:'Local News', name:'Westmont Daily Times', handle:'@WestmontDailyTimes', av:['WDT','#475569'], time:'1d',
+  text:`Lawmakers plan 40-cent gas tax hike next year, report finds. Share if you're fed up! ⛽`,
+  media:L('westmontdailytimes.com','Lawmakers plan 40-cent gas tax hike, report finds','#475569','WESTMONT DAILY TIMES'), stats:[7200,6100,2300],
+  ev:{source:[[1,'Website "About" & "Contact"','No staff names, no address, only a contact form. Domain registered last month.'],[1,'Search: site layout','The same template and many identical articles appear on 40+ "local" news sites in other states.']],
+      search:[[3,'legis.westmont.gov › Bill search','No bill proposing a gas tax increase has been filed this session.'],[0,'Westmont Dept. of Revenue','Current state gas tax: 28 cents per gallon.']],
+      inspect:[[1,'The article','Says "a report finds" but never names or links the report.']]},
+  explain:`A fake "local news" site. These are sometimes called <b>pink-slime</b> sites. The <b>legislature's records</b> show no such bill exists, and the site has no real newsroom.`},
+
+/* 29 */ {a:'F', type:'Family', name:'June Morales', handle:'Your grandma', av:['JM','#a21caf'], time:'2h', shared:'June shared a post from <b>Dr. Steve\'s Natural Health</b>',
+  text:`Worth a try! 🍋❤️
+
+"Lemon water with cayenne CURES the flu in 24 hours. Big Pharma doesn't want you to know! — Dr. Steve"`,
+  media:PH('lemon-water.jpg','lemon','Photo: glass of lemon water with cayenne pepper'), stats:[4100,2900,560],
+  ev:{source:[[1,'State medical board license lookup','No physician named Steve Rourke ("Dr. Steve") is licensed in any state.'],[0,'Grandma June','Means well; shares lots of health tips.']],
+      search:[[3,'National Institutes of Health › Flu treatments','"There is no evidence that lemon, cayenne, or other foods cure influenza." Flu typically lasts 5–7 days.'],[1,'News search','No medical outlet reports any such finding.']],
+      inspect:[[1,'Dr. Steve\'s page','Sells a "Flu Detox Kit" for $49.99.']]},
+  explain:`A <b>health myth</b> with a sales pitch. A national health authority says there's no evidence for it, and "Dr. Steve" isn't a licensed doctor.`},
+
+/* 30 */ {a:'F', m:1, type:'Community Page', name:'Ridgeline Uncensored', handle:'@RidgelineUncensored', av:['RU','#991b1b'], time:'11h',
+  text:`Last night at Ridgeline City Hall. Media is SILENT. 🔥🔥 This is what's happening in OUR town.`,
+  media:VID('riot-video.jpg','','1:12','Video: crowd in a street at night with smoke and flashing lights','crowd'), stats:[44000,26000,8800],
+  ev:{source:[[1,'Profile','Page created last year; posts viral videos without sources.'],[0,'The video','210K views.']],
+      search:[[1,'Ridgeline Police Dept. daily log','No incidents reported at or near City Hall last night.'],[1,'Local news','No Ridgeline outlet reports any event at City Hall.']],
+      inspect:[[3,'Reverse search of a video frame','Identical video posted in 2019 by a TV station in another state, showing fans celebrating a championship.']]},
+  explain:`<b>Real video, false context.</b> The frame search finds the original 2019 video from another city. "The media is silent" often means nothing happened.`},
+
+/* 31 */ {a:'F', m:1, type:'Campaign', name:'Hayes for Westmont', handle:'@HayesForGov', av:['HW','#7f1d1d'], v:1, time:'5h',
+  text:`Dale Brenner, in his own words. 😳 Westmont families deserve better. #KeepWestmontMoving`,
+  media:{kind:'quote', quote:`Public schools are a waste of money.`, att:'— Dale Brenner, candidate forum, Oct. 14'}, stats:[9800,6100,3300],
+  ev:{source:[[1,'Profile','Campaign account for Gov. Hayes, who is running against Brenner next year.'],[0,'Profile','Checkmark · 40K followers.']],
+      search:[[3,'krdg7.com › Full video, Oct. 14 candidate forum','At 31:20 Brenner says: "Some people think public schools are a waste of money. I am not one of them. I\'ll fight for every dollar."'],[1,'associatedwire.com','Brenner\'s education plan proposes raising school funding 3% a year.']],
+      inspect:[[1,'The quote card','Shows only seven words, with no link to a video or transcript.']]},
+  explain:`Brenner really said those words, but <b>clipped out of context</b> they mean the opposite of what he meant. The full forum video proves it. Notice that <i>both</i> campaigns in this game bend the truth.`},
+
+/* 32 */ {a:'F', m:1, type:'Community Page', name:'Ridgeline Buzz', handle:'@RidgelineBuzz', av:['RB','#d97706'], time:'2h',
+  text:`📵 IT'S OFFICIAL: School board votes to BAN PHONES at Ridgeline High starting next semester!!! Students are FURIOUS. Thoughts?? 👇`,
+  media:L('ridgelinecourier.com','School board to study student cellphone rules','#7a1f2b','THE RIDGELINE COURIER'), stats:[5400,2600,3900],
+  ev:{source:[[1,'Profile','Community gossip page run by anonymous admins. Often posts news links with its own dramatic captions.'],[0,'Replies','Hundreds of angry comments from students.']],
+      search:[[3,'ridgelineschools.org › Board minutes, Nov. 10','"Motion to form a committee to study student cellphone use and report recommendations in April. Passed 6–1." No policy was adopted.'],[1,'krdg7.com','"Board takes first step toward possible phone rules; no decision until spring."']],
+      inspect:[[1,'The linked article','Headline: "School board to study student cellphone rules." Nothing in it says phones were banned.']]},
+  explain:`A real vote happened, but the post <b>exaggerates</b> it: the board voted to <i>study</i> phones, not ban them. The caption doesn't even match its own linked headline.`},
+/* ===== TRUE (33–45) ===== */
+/* 33 */ {a:'T', type:'Classmate', name:'Maya Johnson', handle:'@mayaj.votes', av:['MJ','#16a34a'], time:'1h',
+  text:`YOU CAN PRE-REGISTER TO VOTE AT 17 IN WESTMONT!!! 🗳️🔥🔥 then you're automatically registered when you turn 18. takes like 5 min, DO IT RN`,
+  media:L('vote.westmont.gov','Register to Vote — Westmont Secretary of State','#1e3a8a','WESTMONT SECRETARY OF STATE'), stats:[340,210,45],
+  ev:{source:[[0,'Profile','Maya is a junior and president of the Ridgeline High civics club.'],[0,'The post','All caps, three emoji, and "DO IT RN."']],
+      search:[[3,'vote.westmont.gov › Who can register','"Westmont residents who are 17 may pre-register. Your registration becomes active automatically on your 18th birthday."'],[1,'Carver County Clerk','Lists pre-registration for 17-year-olds on its "New Voters" page.']],
+      inspect:[[1,'The link','Goes to vote.westmont.gov, the Secretary of State’s official site.']]},
+  explain:`All caps and emoji don't make something false. The <b>Secretary of State's official site</b> confirms it. Judge the evidence, not the excitement.`},
+
+/* 34 */ {a:'T', type:'National News', name:'Capitol Report', handle:'@CapitolReport', av:['CR','#1e3a5f'], v:1, time:'4h',
+  text:`The House voted 270–160 to override the President's veto of the farm bill, but the override FAILED, falling 17 votes short. The veto stands.`,
+  media:L('capitolreport.com','House fails to override farm bill veto despite majority vote','#1e3a5f','CAPITOL REPORT'), stats:[2200,900,1600],
+  ev:{source:[[1,'About page','Nonpartisan outlet covering Congress since 1998; lists editors and a corrections policy.'],[0,'Replies','Many replies ask: "How did it fail if 270 voted yes??"']],
+      search:[[3,'clerk.house.gov › Roll Call 412','Question: Passage, objections of the President notwithstanding. Yea 270 · Nay 160. <b>Result: Failed (two-thirds required).</b>'],[1,'associatedwire.com','"Farm bill veto survives as House override falls short."']],
+      inspect:[[1,'U.S. Constitution, Art. I, Sec. 7','A vetoed bill becomes law only if "two thirds of that House shall agree to pass the Bill."'],[1,'The math','270 out of 430 members voting is about 63%, short of two-thirds (67%).']]},
+  explain:`It sounds impossible for 270 "yes" votes to lose, but a veto override needs a <b>two-thirds</b> majority. The official House roll call confirms the result.`},
+
+/* 35 */ {a:'T', type:'Blogger', name:'SCOTUS Explained', handle:'Prof. Denise Ortega · newsletter', av:['SE','#4c1d95'], time:'8h',
+  text:`Big one for students: the Supreme Court ruled 6–3 today in Harlan v. Eastbrook School District that a public school violated the First Amendment when it suspended a student for a profanity-filled post made off campus, on a weekend.
+
+Schools can still discipline off-campus speech in some cases (threats, bullying), so this isn't a free-for-all. Full breakdown below.`,
+  media:L('scotusexplained.news','Harlan v. Eastbrook: what the Court did (and didn’t) decide','#4c1d95','SCOTUS EXPLAINED'), stats:[3100,1400,520],
+  ev:{source:[[1,'About page','Written by a constitutional law professor at Westmont State. Links to every opinion she discusses.'],[0,'Profile','Newsletter has 18,000 subscribers.']],
+      search:[[3,'supremecourt.gov › Opinions','<i>Harlan v. Eastbrook School District</i>, decided today. Affirmed, 6–3. The suspension violated the First Amendment; schools may still address off-campus threats and harassment.'],[1,'associatedwire.com','"Supreme Court sides with student suspended over weekend post."']],
+      inspect:[[1,'The post','Explains the limits of the ruling instead of exaggerating it.']]},
+  explain:`The <b>Court's published opinion</b> confirms it, and the writer describes its limits accurately. Notice how a careful source avoids overstating a ruling.`},
+
+/* 36 */ {a:'T', type:'Community Group', name:'Rob Kessler', handle:'in Ridgeline Parents Network', av:['RK','#0f766e'], time:'5h',
+  text:`Ugh. So now my kid has to take a MONEY class to graduate?? Starting with the class of 2030. Who even decides this stuff 🙄`, stats:[88,12,140],
+  ev:{source:[[0,'Profile','Rob is a parent in the group; posts mostly about youth hockey.'],[0,'The post','Annoyed tone and an eye-roll emoji.']],
+      search:[[3,'legis.westmont.gov › SB 88','Signed into law in May: "Beginning with students graduating in 2030, one semester of personal finance is required for a high school diploma."'],[1,'Westmont Dept. of Education','Guidance page for schools on the new personal finance requirement.']],
+      inspect:[[1,'How graduation rules are set','High school graduation requirements are set by each state (its legislature and education department), not the federal government.']]},
+  explain:`A complaint can still be accurate. The <b>state law</b> confirms the new requirement. And to answer his question: in our federal system, <b>states</b> decide graduation requirements.`},
+
+/* 37 */ {a:'T', type:'Student News', name:'The Ridgeline Roar', handle:'@RHSRoar · student newspaper', av:['RR','#b91c1c'], time:'20m',
+  text:`🚨🚨 BREAKING: Ridgeline Mayor Tom Becker RESIGNS, effective Friday!!! Council President Ana Ruiz will serve as acting mayor. More soon!!`, stats:[1700,1300,600],
+  ev:{source:[[1,'About page','Student newspaper of Ridgeline High. Faculty adviser listed; stories are edited before posting.'],[0,'Profile','2,300 followers, mostly students.']],
+      search:[[3,'ridgelinecity.gov › City Clerk','Posted 35 minutes ago: Mayor Becker’s signed resignation letter, effective Friday at 5 p.m.'],[1,'krdg7.com','"Ridgeline mayor resigns, citing family health reasons."']],
+      inspect:[[1,'Ridgeline City Charter § 3.06','"If the office of mayor becomes vacant, the president of the council shall serve as acting mayor until a special election."']]},
+  explain:`Sirens, caps and a student source, and it's still <b>true</b>: the city clerk posted the signed resignation letter. Breaking news can be real. Check before you dismiss it, too.`},
+
+/* 38 */ {a:'T', type:'Public Radio', name:'Westmont Public Radio', handle:'@WestmontPR', av:['WPR','#0c4a6e'], v:1, time:'1d',
+  text:`New census numbers mean Westmont will gain a seat in the U.S. House, growing from 8 to 9 representatives. The Legislature will draw a new congressional map next year.`,
+  media:L('westmontpublicradio.org','Westmont gains a U.S. House seat after population boom','#0c4a6e','WESTMONT PUBLIC RADIO'), stats:[1500,700,310],
+  ev:{source:[[1,'About page','Public radio newsroom with an editorial independence policy and a corrections page.'],[0,'The post','No emoji or opinion.']],
+      search:[[3,'census.gov › Apportionment results','Westmont: 8 seats → <b>9 seats</b>.'],[1,'associatedwire.com','"Fast-growing states gain House seats; others lose them."']],
+      inspect:[[1,'U.S. Constitution, Art. I, Sec. 2','Representatives "shall be apportioned among the several States… according to their respective Numbers," counted every ten years.']]},
+  explain:`The <b>Census Bureau's official apportionment table</b> confirms it. This is how the Constitution ties House seats to population.`},
+
+/* 39 */ {a:'T', type:'Advocacy Group', name:'Westmont Taxpayers League', handle:'@WestmontTaxpayers', av:['TL','#3f6212'], v:1, time:'7h',
+  text:`State spending grew 11% over the last two budgets, the fastest growth in a decade. Lawmakers should explain where your money is going. 💸`, stats:[2400,1300,880],
+  ev:{source:[[1,'About page','Advocacy group that pushes for lower taxes and less government spending. Its point of view is out in the open.'],[0,'Profile','Checkmark · 22K followers.']],
+      search:[[3,'budget.westmont.gov › Spending history','General fund: $24.3 billion → $27.0 billion over two budgets (+11.1%). Largest two-budget increase since 2014.'],[1,'Westmont Public Radio','"State spending up 11%, driven mostly by Medicaid and school funding."']],
+      inspect:[[1,'The post','The number is specific. The last sentence ("should explain where your money is going") is opinion.']]},
+  explain:`This group has an obvious point of view, but its <b>fact checks out</b> against the state budget office. A biased source can still be accurate. Separate the fact from the opinion.`},
+
+/* 40 */ {a:'T', type:'Influencer', name:'Dr. Nina Explains', handle:'@DrNinaExplains', av:['NE','#be123c'], v:1, time:'3h',
+  text:`Good news nobody's talking about 📉 Teen vaping fell for the third year in a row! About 1 in 16 high schoolers vaped in the past month, down from 1 in 7 five years ago. Keep it going 💪`, stats:[42000,6100,1900],
+  ev:{source:[[1,'Westmont Medical Board license lookup','Nina Patel, MD: licensed pediatrician, active, no disciplinary actions.'],[0,'Profile','1.1M followers; makes short health videos with music and captions.']],
+      search:[[3,'cdc.gov › National Youth Tobacco Survey','Current e-cigarette use among high school students: 6.3% this year (about 1 in 16), down from 14.1% five years ago. Third straight annual decline.'],[1,'associatedwire.com','"Teen vaping drops again, federal survey finds."']],
+      inspect:[[1,'The post','Gives specific numbers and a time frame.']]},
+  explain:`Influencers can be reliable too. This licensed doctor's numbers match the <b>federal survey data</b>. Fun formatting doesn't make something false.`},
+
+/* 41 */ {a:'T', type:'Local News', name:'The Ridgeline Courier', handle:'@RidgelineCourier', av:['RC','#7a1f2b'], v:1, time:'9h',
+  text:`A federal judge ruled the City of Ridgeline violated the First Amendment by deleting a resident's critical comments and blocking her from the city's official Facebook page. The city must pay $85,000 in legal fees and restore her access.`,
+  media:L('ridgelinecourier.com','Judge: City violated First Amendment by blocking critic online','#7a1f2b','THE RIDGELINE COURIER'), stats:[2600,1100,740],
+  ev:{source:[[1,'About page','Published since 1921; lists editors and a corrections page.'],[0,'Replies','Several replies call the Courier "biased against the mayor."']],
+      search:[[3,'U.S. District Court › Lin v. City of Ridgeline','Order: The city’s deletion of comments and blocking on its official page violated the First Amendment. Attorney’s fees awarded: $85,000.'],[1,'City of Ridgeline statement','"We respect the court’s decision and are updating our social media policy."']],
+      inspect:[[1,'U.S. Constitution, 1st Amendment','"Congress shall make no law… abridging the freedom of speech…" (This also applies to state and local governments through the 14th Amendment.)']]},
+  explain:`The <b>court's own order</b> confirms it, and even the city accepts it. Government bodies can't silence critics on official pages just because they disagree.`},
+
+/* 42 */ {a:'T', type:'Government', name:'Carver County Elections', handle:'@CarverVotes', av:['CV','#1e40af'], v:1, gov:1, time:'Election night',
+  text:`Reminder: results posted tonight are UNOFFICIAL. Mail ballots postmarked by Election Day can arrive through Friday, and we count every one. It's normal for totals to change this week. Final certified results: Nov. 21.`, stats:[3400,5200,2800],
+  ev:{source:[[1,'Profile','Official county elections office account, linked from carvercounty.gov.'],[0,'Replies','Some replies say "they’re rigging it" and "counting should stop tonight."']],
+      search:[[3,'Westmont Election Code § 15-210','Mail ballots postmarked on or before Election Day and received within three days after are counted. Counties certify results within 14 days.'],[1,'Westmont Public Radio','"Why vote totals change after election night, and why that’s normal."']],
+      inspect:[[1,'The post','Calm tone; explains the process and gives the certification date.']]},
+  explain:`The <b>state election law</b> confirms the counting timeline. Totals that change after election night are normal, not a sign of fraud. Knowing the process helps you resist misinformation.`},
+
+/* 43 */ {a:'T', type:'Friend', name:'Luis Herrera', handle:'@luis.h', av:['LH','#c2410c'], time:'2h',
+  text:`raise at work jan 1 lets gooo 💸💸 westmont minimum wage going to $13.50`, stats:[64,5,19],
+  ev:{source:[[0,'Profile','Luis works part-time at a burger place after school.'],[0,'The post','No link or source given.']],
+      search:[[3,'labor.westmont.gov › Minimum wage','Scheduled increases under the 2024 Fair Wage Act: $12.75 now → <b>$13.50 on January 1</b>.'],[1,'ridgelinecourier.com','"Minimum wage rises again Jan. 1, final step of 2024 law."']],
+      inspect:[[0,'The post','All lowercase, two emoji.']]},
+  explain:`No source in the post, but a quick check of the <b>state labor department</b> confirms it. "No link" means <i>go verify</i>, not automatically "fake."`},
+
+/* 44 */ {a:'T', type:'National News', name:'Associated Wire Service', handle:'@AssociatedWire', av:['AW','#111827'], v:1, time:'3h',
+  text:`The Senate voted 61–38 to confirm Gloria Reyes as Secretary of State. She'll be sworn in Monday.`, stats:[1900,800,450],
+  ev:{source:[[1,'About page','Wire service supplying 1,300+ outlets of all political leanings. Publishes corrections.'],[0,'Replies','"Never heard of her."']],
+      search:[[3,'senate.gov › Roll Call Vote #301','On the Nomination (Gloria Reyes, to be Secretary of State): Yea 61 · Nay 38. <b>Confirmed.</b>'],[1,'Capitol Report','"Reyes confirmed with support from both parties."']],
+      inspect:[[1,'U.S. Constitution, Art. II, Sec. 2','The President "shall nominate, and by and with the Advice and Consent of the Senate, shall appoint… Officers of the United States."']]},
+  explain:`The <b>official Senate roll call</b> confirms it. This is "advice and consent": the President nominates, and the Senate confirms.`},
+
+/* 45 */ {a:'T', type:'Government', name:'Carver County Sheriff', handle:'@CarverSheriff', av:['CS','#854d0e'], v:1, gov:1, time:'6h',
+  text:`SCAM ALERT: Callers are pretending to be deputies, saying you missed jury duty and must pay a fine with gift cards to avoid arrest. We will NEVER call demanding payment, and courts never take gift cards. Hang up and call us at the number on our website.`, stats:[1200,4800,330],
+  ev:{source:[[1,'Profile','Official sheriff’s office account, linked from carvercounty.gov.'],[0,'The post','Uses all caps for "SCAM ALERT" and "NEVER."']],
+      search:[[3,'Carver County Circuit Court › Jury Service','"The court will never ask for payment by phone, email, or gift card for missed jury service."'],[1,'krdg7.com','"Jury duty phone scam targets Carver County residents."']],
+      inspect:[[1,'The post','Tells you to call the number on the official website, not one given by a caller.']]},
+  explain:`An official warning confirmed by the <b>court's own jury page</b>. Real warnings tell you how to check independently. Scams pressure you to act right now.`},
+
+/* ===== FALSE (46–51) ===== */
+/* 46 */ {a:'F', type:'Politician', name:'Gov. Elaine Hayes', handle:'@GovHayes_Official', av:['EH','#7f1d1d'], v:1, time:'2h',
+  text:`Thanks to our budget surplus, every Westmont resident will receive a $600 rebate! 🎉 Claim yours before Friday at westmont-rebate.com. You'll just need your bank info and Social Security number.`,
+  media:L('westmont-rebate.com','Claim Your Westmont Resident Rebate','#7f1d1d','STATE OF WESTMONT'), stats:[15000,22000,4100],
+  ev:{source:[[1,'Profile','@GovHayes_Official was created 2 days ago. The governor’s office account is @GovHayes, with a government label; this one has only a paid checkmark.'],[0,'Profile','Uses the same photo and banner as the governor’s office account.']],
+      search:[[3,'revenue.westmont.gov › Alerts','"There is no resident rebate program. westmont-rebate.com is not a state website. Do not enter personal information."'],[1,'@GovHayes (official)','No post about any rebate.']],
+      inspect:[[1,'The link','Domain ends in .com, not .gov, and asks for your bank account and Social Security number.']]},
+  explain:`An <b>impersonator account</b> running a scam. The state revenue department says no rebate exists. Check the exact handle and look for the .gov.`},
+
+/* 47 */ {a:'F', type:'Government', name:'Ridgeline Public Library', handle:'@RidgelineLibrary', av:['RPL','#0e7490'], v:1, gov:1, time:'4h',
+  text:`🎉 HUGE GIVEAWAY 🎉 To celebrate 100 years, the first 500 people who send $25 in crypto to the wallet below get a FREE laptop! 💻 Hurry, ends tonight!
+
+Wallet: 0x7f3a9b…c91e`, stats:[310,890,1200],
+  ev:{source:[[0,'Profile','This is the library’s real, government-labeled account, active since 2012.'],[1,'Post history','Before today, the account only posted story times, book clubs, and closing notices.']],
+      search:[[3,'ridgelinelibrary.org › News','Posted 2 hours ago: "Our social media account was hacked overnight. We are not running any giveaway. Please do not send money."'],[1,'Ridgeline Police','"Report crypto giveaway scams to our non-emergency line."']],
+      inspect:[[1,'The post','Asks you to send money first to get a prize, with an urgent deadline.']]},
+  explain:`Even a <b>real official account</b> can be hacked. The library's own website confirms it. "Send money to get a prize" is always a scam, no matter who posts it.`},
+
+/* 48 */ {a:'F', type:'Local News', name:'The Ridgeline Courier', handle:'@RidgelineCourier', av:['RC','#7a1f2b'], v:1, time:'1d',
+  text:`City Council approves a 15% property tax increase for next year, the largest in city history. Full story 👇`,
+  media:L('ridgelinecourier.com','Council approves record 15% property tax hike','#7a1f2b','THE RIDGELINE COURIER'), stats:[3900,4400,2700],
+  ev:{source:[[1,'About page','Published since 1921; keeps a public Corrections page.'],[0,'Replies','Hundreds of angry replies about taxes.']],
+      search:[[3,'ridgelinecity.gov › Meeting minutes, Nov. 12','"Ordinance 26-41: property tax levy increase of <b>1.5%</b>. Passed 4–3."'],[1,'krdg7.com','"Council approves 1.5% property tax increase."']],
+      inspect:[[1,'Courier Corrections page (posted this morning)','"An earlier version of this story misstated the increase as 15%. The correct figure is 1.5%. We regret the error."']]},
+  explain:`Even trustworthy outlets make mistakes; this one dropped a decimal point. The <b>official minutes</b> show 1.5%. What makes the Courier reliable is that it <b>publicly corrected</b> the error.`},
+
+/* 49 */ {a:'F', type:'Community Page', name:'Westmont Voter Alert', handle:'@WestmontVoterAlert', av:['VA','#9f1239'], time:'5h',
+  text:`⚠️ WARNING: If you have ANY unpaid parking tickets or court fines, you CANNOT vote this year. Poll workers will check. Don't risk getting arrested at the polls! Please share. 🙏`, stats:[6700,9100,1800],
+  ev:{source:[[1,'Profile','Page created in August. No names, address, or contact info.'],[0,'Profile','19K followers.']],
+      search:[[3,'Westmont Election Code § 3-101','Voter qualifications: U.S. citizen, Westmont resident, 18 by Election Day, registered, and not currently serving a felony prison sentence. Unpaid fines and tickets are not listed.'],[1,'Carver County Elections','"Poll workers do not check for unpaid fines or tickets. If you are registered, you can vote."']],
+      inspect:[[1,'The post','Uses fear ("getting arrested at the polls") and gives no source.']]},
+  explain:`The <b>state election law</b> lists who can vote, and unpaid tickets aren't on it. Posts that scare people away from voting are a form of voter suppression, whoever posts them.`},
+
+/* 50 */ {a:'F', type:'Meme Page', name:'Freedom Watch Memes', handle:'@FreedomWatchMemes', av:['FW','#1f2937'], time:'1d',
+  text:`They just made it ILLEGAL to criticize the governor online in Westmont!!! 🤐 Fines up to $1,000 per post. Welcome to the new America. Share before they fine YOU.`, stats:[28000,19000,6600],
+  ev:{source:[[1,'Profile','Anonymous meme page; posts no links or sources.'],[0,'Profile','310K followers.']],
+      search:[[3,'legis.westmont.gov › Bill search','No bill restricting criticism of the governor or other officials has been introduced, passed, or signed.'],[1,'News search','No outlet reports any such law.']],
+      inspect:[[1,'U.S. Constitution, 1st Amendment','Protects freedom of speech, including criticism of government officials. A state law punishing it would almost certainly be struck down.']]},
+  explain:`No such law exists in the <b>legislature's records</b>, and the First Amendment protects criticizing officials. "Share before they fine YOU" is designed to spread fear fast.`},
+
+/* 51 */ {a:'F', type:'Viral Video', name:'Real News Daily', handle:'@realnews.daily', av:['RN','#111827'], time:'7h',
+  text:`🚨 THE DRAFT IS COMING BACK 🚨 All men AND women 18–25 will be drafted starting next month. The government already sent the letters. Tag someone who needs to see this!!`, stats:[120000,64000,31000],
+  ev:{source:[[1,'Profile','Account created 6 weeks ago; reposts viral clips with dramatic captions.'],[0,'The video','2.4M views.']],
+      search:[[3,'sss.gov › Selective Service System','"There is no draft. Reinstating a draft would require Congress to pass a law and the President to sign it."'],[1,'congress.gov › Bill search','No bill to reinstate the draft has passed either chamber.']],
+      inspect:[[1,'U.S. Constitution, Art. I, Sec. 8','Congress has the power "to raise and support Armies." A draft requires an act of Congress, which would be major news.']]},
+  explain:`<b>Selective Service</b>, the agency that would run a draft, says there is none. Only Congress can create one, and that couldn't happen quietly. This hoax resurfaces regularly.`},
+
+/* ===== MISLEADING (52–60) ===== */
+/* 52 */ {a:'F', m:1, type:'Advocacy Group', name:'Westmont Families Forward', handle:'@WestmontFamFwd', av:['FF','#7e22ce'], v:1, time:'6h',
+  text:`Rep. Dale Brenner voted AGAINST school lunches for Westmont kids. 🍎❌ Remember that in November.`, stats:[8800,5900,3100],
+  ev:{source:[[1,'About page','Advocacy group that supports more spending on families and schools; openly opposes Brenner.'],[0,'Profile','Checkmark · 31K followers.']],
+      search:[[3,'legis.westmont.gov › Brenner voting record','Voted NO on HB 1 (the 1,400-page state budget, which included school lunch funding among thousands of items). Voted YES on HB 47 (a separate bill expanding free school lunches), which passed.'],[1,'ridgelinecourier.com','Brenner said he opposed the budget over its overall spending level.']],
+      inspect:[[1,'The post','Doesn’t name a bill or link to a vote.']]},
+  explain:`Brenner did vote against a bill that <i>contained</i> lunch money, but he voted <b>for</b> the separate school lunch bill. Turning one vote on a giant bill into "voted against lunches" is a common voting-record distortion.`},
+
+/* 53 */ {a:'F', m:1, type:'Classmate', name:'Jordan Ellis for Student Council', handle:'@jordan4council', av:['JE','#0369a1'], time:'1d',
+  text:`POLL RESULTS ARE IN 📊 73% of Ridgeline students want a 4-day school week!! The people have spoken. Vote Jordan 🗳️`, stats:[410,95,160],
+  ev:{source:[[1,'Profile','Jordan is running for student council on a "4-day week" platform.'],[0,'Profile','Jordan has 1,800 followers.']],
+      search:[[3,'Ridgeline School District › Student survey results','Survey sent to every student (2,400 responses): 41% favor a 4-day week, 38% oppose, 21% unsure.'],[1,'The Ridgeline Roar','"Instagram poll and district survey show very different results."']],
+      inspect:[[1,'Jordan’s Instagram story','The "poll" was a story sticker answered by 112 of Jordan’s own followers.']]},
+  explain:`The 73% is real, but it came from 112 of Jordan's followers, not a fair sample of students. The <b>district's survey of 2,400 students</b> shows 41%. Always ask: <i>who</i> was asked, and how many?`},
+
+/* 54 */ {a:'F', m:1, type:'Advocacy Group', name:'Ballot Integrity Now', handle:'@BallotIntegrityNow', av:['BI','#991b1b'], v:1, time:'8h',
+  text:`PROOF: States with strict voter ID laws had HIGHER turnout last election than states without them. Voter ID doesn't suppress votes, it BOOSTS them! 📈`,
+  media:L('westmontstate.edu','Turnout and Election Rules: A State-by-State Comparison','#14532d','WESTMONT STATE UNIVERSITY'), stats:[7400,4300,2900],
+  ev:{source:[[1,'About page','Advocacy group that campaigns for stricter voter ID laws.'],[0,'Profile','Checkmark · 48K followers.']],
+      search:[[1,'associatedwire.com','Political scientists note that many strict-ID states had close, high-profile Senate races that year, which drive turnout.'],[0,'Westmont State press release','"Westmont State researchers release turnout comparison."']],
+      inspect:[[3,'The study’s own conclusion','"States with strict ID laws averaged 2 points higher turnout. This comparison does not show that ID laws caused the difference; competitive races and other factors likely played a role."']]},
+  explain:`The turnout numbers are real, but the study <b>itself says</b> they don't prove ID laws caused anything. This mixes up <b>correlation and causation</b>.`},
+
+/* 55 */ {a:'F', m:1, type:'Family', name:'Walt Morales', handle:'Your grandpa', av:['WM','#57534e'], time:'3h',
+  text:`Remember folks, Westmont has NO early voting. You have to show up on Election Day or mail it in. Don't get caught off guard!`,
+  media:L('ridgelinecourier.com','Explainer: Why Westmont doesn’t have early voting','#7a1f2b','THE RIDGELINE COURIER'), stats:[22,9,4],
+  ev:{source:[[0,'Profile','Grandpa Walt, retired machinist. Votes in every election.'],[1,'The link','Goes to a real Ridgeline Courier explainer.']],
+      search:[[1,'legis.westmont.gov › HB 12 (2023)','Created 10 days of in-person early voting, starting in 2024.'],[1,'ridgelinecourier.com (2024)','"Early voting debuts in Westmont; 300,000 vote in first week."']],
+      inspect:[[3,'Open the article','Dated <b>October 2018</b>. It was accurate then; the law has changed since.']]},
+  explain:`The article was true <b>in 2018</b>, but Westmont now has early voting. Outdated information shared as current is misleading. Check the date, especially for rules about voting.`},
+
+/* 56 */ {a:'F', m:1, type:'Blogger', name:'Ridgeline Taxpayer Watch', handle:'@RidgelineTaxWatch', av:['TW','#4d7c0f'], time:'1d',
+  text:`The city's shiny new electric buses broke down 47 TIMES this year. 47!!! 🚌💥 What a waste of our tax dollars.`, stats:[1900,1100,780],
+  ev:{source:[[1,'About page','Blog run by a local resident who opposed the electric bus purchase.'],[0,'Profile','4,100 followers.']],
+      search:[[3,'Ridgeline Transit › Annual maintenance report','Electric buses: 40 buses, 47 breakdowns (about 1.2 per bus). Diesel buses: 80 buses, 210 breakdowns (about 2.6 per bus).'],[1,'krdg7.com','"Transit officials say electric buses have been more reliable than expected."']],
+      inspect:[[1,'The post','Doesn’t say how many buses there are or compare them to the diesel buses.'],[0,'The post','Uses "47!!!" and an explosion emoji.']]},
+  explain:`47 breakdowns is a real number, but without a comparison it's meaningless. Per bus, the electric buses broke down <b>less than half as often</b> as diesel buses. Always ask: compared to what?`},
+
+/* 57 */ {a:'F', m:1, type:'Influencer', name:'Tyler Grant', handle:'@tylergrant.talks', av:['TG','#ea580c'], v:1, time:'5h',
+  text:`Congress just voted to give THEMSELVES a raise while you struggle to pay rent 🤬💰 Unreal.`, stats:[54000,31000,9200],
+  ev:{source:[[1,'Profile','Commentary influencer who posts daily political reaction videos; no news staff.'],[0,'Profile','890K followers.']],
+      search:[[3,'Congressional Research Service › Member pay','Under a 1989 law, members get an automatic cost-of-living adjustment unless Congress votes to block it. This year it wasn’t blocked: pay rises 2.1%, from $174,000 to $177,600. No vote was held to raise pay.'],[1,'associatedwire.com','"Lawmakers’ automatic 2.1% pay bump takes effect after Congress skips vote to block it."']],
+      inspect:[[1,'U.S. Constitution, 27th Amendment','A change in congressional pay can’t take effect until after the next House election.']]},
+  explain:`Members' pay is going up, but there was no "vote to give themselves a raise." It's an <b>automatic</b> 2.1% cost-of-living adjustment set by a 1989 law. The real story is less outrageous than the post suggests.`},
+
+/* 58 */ {a:'F', m:1, type:'Tech Blog', name:'GadgetGrid', handle:'@GadgetGrid', av:['GG','#0891b2'], v:1, time:'4h',
+  text:`BREAKING: Court STRIKES DOWN Westmont's social media law for teens! 🎉 You can delete that age-verification app. The law is dead.`,
+  media:L('gadgetgrid.com','Court strikes down Westmont teen social media law','#0891b2','GADGETGRID'), stats:[18000,9700,2200],
+  ev:{source:[[1,'About page','Tech news blog focused on gadgets and apps; no legal reporters on staff.'],[0,'Profile','Checkmark · 600K followers.']],
+      search:[[3,'U.S. District Court › NetFree v. Westmont, Order','<b>Preliminary injunction</b> granted for Section 4 (age verification) only, while the case continues. "All other provisions remain in effect." No final ruling.'],[1,'Westmont Public Radio','"Judge temporarily blocks age-check part of teen social media law; rest stays in place."']],
+      inspect:[[1,'The article','Quotes the judge’s order but leaves out the words "preliminary" and "Section 4."']]},
+  explain:`A court <b>did</b> act, but it temporarily blocked one section while the case continues. It didn't strike down the whole law. Know the difference between a <b>preliminary injunction</b> and a final ruling.`},
+
+/* 59 */ {a:'F', m:1, type:'Watchdog Group', name:'Westmont Watchdog', handle:'@WestmontWatchdog', av:['WW','#475569'], time:'1d',
+  text:`Unemployment in Westmont SKYROCKETED 40% in just one month!! 📈😱 The economy is collapsing.`, stats:[13000,8800,3400],
+  ev:{source:[[1,'Profile','Political page that posts mostly negative economic news; no named staff.'],[0,'Profile','52K followers.']],
+      search:[[3,'Westmont Dept. of Labor › Monthly report','Unadjusted rate: 3.0% in December → 4.2% in January, the usual post-holiday jump. <b>Seasonally adjusted</b> rate: 3.6% → 3.7%.'],[1,'Westmont Public Radio','"January job numbers show usual seasonal dip; economists see little change."']],
+      inspect:[[1,'The math','3.0% → 4.2% is a 1.2 percentage-point rise. Calling it "40%" (the relative change) makes it sound far bigger.']]},
+  explain:`The numbers are real but framed to sound alarming: a 1.2-point rise described as "40%," in a month when unemployment <b>always</b> jumps after the holidays. Adjusted for seasons, it barely moved.`},
+
+/* 60 */ {a:'F', m:1, type:'Community Page', name:'Ridgeline Buzz', handle:'@RidgelineBuzz', av:['RB','#d97706'], time:'3h',
+  text:`🎨❌ LEAKED MEMO: Ridgeline schools are CUTTING ALL ART CLASSES next year!!! Parents, show up and fight this!!`,
+  media:{kind:'shot', html:`<div style="font-family:'Courier New',monospace;font-size:.9rem;line-height:1.5"><b>RIDGELINE SCHOOL DISTRICT — INTERNAL</b><br>Budget Options Under Review (DRAFT)<br>…<br>Option 7: Eliminate art programs, grades K–12 (est. savings $1.2M)<br>Option 8: Consolidate bus routes (est. savings $640K)<br>…</div><div class="st">Photo of a printed page</div>`}, stats:[6100,4900,2600],
+  ev:{source:[[1,'Profile','Anonymous community gossip page. Often adds dramatic captions to real documents.'],[0,'Replies','Hundreds of parents say they’ll attend the next board meeting.']],
+      search:[[3,'ridgelineschools.org › Board minutes, Nov. 4','"Board reviewed 12 budget options. Option 7 (eliminate art programs) was <b>rejected 7–0</b>."'],[1,'ridgelinecourier.com','"Board rejects cutting art; considers consolidating bus routes."']],
+      inspect:[[1,'The memo','Titled "Options Under Review (DRAFT)." It lists ideas, not decisions.']]},
+  explain:`The memo is real, but it was a list of <b>options</b>, and the board <b>rejected</b> cutting art 7–0. A real document with a false caption is misleading.`}
+];
+POSTS.forEach((p,i)=>p.id='p'+(i+1));
+
+/* ================= GAME ENGINE ================= */
+const TOOLS = {
+  source:['👤','Check the source','Who posted this, and who are they?'],
+  search:['🌐','Search other sources','What do other sources say?'],
+  inspect:['🔍','Inspect the details','Look closely at the post, link, or media']
+};
+const LABEL={T:'FACTUAL',F:'FALSE',M:'MISLEADING'};
+const $=id=>document.getElementById(id);
+let mode=MODE_LOCK||'basic', deck=[], idx=0, results=[], opened, keyId, verdict, locked;
+
+/* ---------- Verdict definitions ---------- */
+function defsHTML(m, compact){
+  const T=`<div class="def T"><h3><span class="tag T">FACTUAL</span></h3>
+    <p>The post's main claim is <b>true and backed up by reliable evidence</b>.</p>
+    ${compact?'':`<p class="muted">A factual post can still include opinion or spin (like a politician saying "I'm proud of this bill"), as long as the facts it states check out.</p>`}</div>`;
+  const Fb=`<div class="def F"><h3><span class="tag F">FALSE</span></h3>
+    <p>The post would leave you <b>believing something untrue</b>.</p>
+    <p class="muted">That includes things that are made up (hoaxes, fake quotes, doctored or AI images, impostor sites, satire taken as news) <b>and</b> real information used in a misleading way (old news posted as new, cherry-picked numbers, a real video with the wrong caption).</p></div>`;
+  const Fa=`<div class="def F"><h3><span class="tag F">FALSE</span></h3>
+    <p>The heart of the post is <b>invented or fake</b>.</p>
+    <p class="muted">Examples: hoaxes and chain messages, fabricated quotes, doctored or AI-generated images and video, impostor news sites, satire taken as real news, scams.</p></div>`;
+  const M=`<div class="def M"><h3><span class="tag M">MISLEADING</span>${m==='basic'?'<span class="advonly">Advanced mode only</span>':''}</h3>
+    <p>The post is built from <b>something real</b> (a real article, photo, video, quote, number, or study) but presents it in a way that <b>leads you to a wrong conclusion</b>.</p>
+    <p class="muted">Examples: old news shared as if it's new · cherry-picked statistics · a quote clipped out of context · real video with a false caption · a study exaggerated beyond what it found.</p></div>`;
+  const thumb=`<div class="thumb">🧭 <b>Rule of thumb:</b> Ask, <i>"Are the pieces real?"</i> If the pieces are real but the takeaway is wrong → <b>Misleading</b>. If the pieces themselves are fake → <b>False</b>.</div>`;
+  if(m==='basic') return T+Fb+(compact?'':M);
+  return T+M+Fa+thumb;
+}
+function setMode(m){
+  mode=m;
+  document.querySelectorAll('.mode').forEach(b=>{const on=b.dataset.mode===m;b.classList.toggle('sel',on);b.setAttribute('aria-pressed',on);});
+  $('introDefs').innerHTML=defsHTML(m,false);
+}
+document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+if(MODE_LOCK){
+  document.querySelectorAll('.mode').forEach(b=>{ if(b.dataset.mode!==MODE_LOCK) b.classList.add('hidden'); b.disabled=true; });
+  $('modes').style.gridTemplateColumns='1fr';
+  $('lockNote').textContent=`Your teacher has set this game to ${MODE_LOCK==='basic'?'Basic':'Advanced'} mode.`;
+}
+setMode(mode);
+
+/* ---------- Help popup ---------- */
+function toggleHelp(force){
+  const open = force!==undefined ? force : $('helpBox').classList.contains('hidden');
+  $('helpBox').classList.toggle('hidden',!open);
+  $('helpBtn').setAttribute('aria-expanded',open);
+}
+$('helpBtn').onclick=()=>toggleHelp();
+$('helpX').onclick=()=>toggleHelp(false);
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') toggleHelp(false); });
+
+/* ---------- Deck ---------- */
+/* ---------- Remember which posts this student has seen ---------- */
+const SEEN_KEY='truthOrTrending_seen_v1';
+let seen={};
+try{ seen=JSON.parse(localStorage.getItem(SEEN_KEY)||'{}')||{}; }catch(e){ seen={}; }
+function saveSeen(){ try{ localStorage.setItem(SEEN_KEY,JSON.stringify(seen)); }catch(e){} }
+// Least-seen posts first (random order among ties), so posts don't repeat until the bank runs out
+function pick(pool,n){ return pool.map(p=>[(seen[p.id]||0)+Math.random()*0.9,p]).sort((x,y)=>x[0]-y[0]).slice(0,n).map(x=>x[1]); }
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function buildDeck(){
+  const nBad=MIN_FALSE+Math.floor(Math.random()*(MAX_FALSE-MIN_FALSE+1));
+  let bad;
+  if(mode==='advanced'){
+    const nM=2+Math.floor(Math.random()*3);   // 2–4 misleading posts
+    bad=pick(POSTS.filter(p=>p.m),nM).concat(pick(POSTS.filter(p=>p.a==='F'&&!p.m),nBad-nM));
+  } else {
+    bad=pick(POSTS.filter(p=>p.a==='F'),nBad);
+  }
+  return shuffle(bad.concat(pick(POSTS.filter(p=>p.a==='T'),POSTS_PER_GAME-bad.length)));
+}
+const ans=p=> (mode==='advanced'&&p.m)?'M':p.a;
+
+/* ---------- Rendering ---------- */
+function fmt(n){return n>=1000?(n/1000).toFixed(n>=10000?0:1).replace('.0','')+'K':n}
+function fallbackHTML(m){
+  if(m.fallback && IMG[m.fallback]) return IMG[m.fallback];
+  return `<div class="ph"><div><b>📷</b>${m.desc}</div></div>`;
+}
+function renderMedia(m){
+  if(!m) return '';
+  switch(m.kind){
+    case 'link': return `<div class="media linkcard"><div class="img" style="background:${m.color}">${m.banner}</div><div class="meta"><div class="dom">${m.domain}</div><div class="hl">${m.headline}</div></div></div>`;
+    case 'photo': return `<div class="media">${fallbackHTML(m)}</div>`;
+    case 'video': return `<div class="media">${fallbackHTML(m)}<div class="playov"><span>▶</span></div>${m.label?`<div class="vlabel">${m.label}</div>`:''}<div class="vtime">${m.time}</div></div>`;
+    case 'svg': return `<div class="media">${IMG[m.svg]}</div>`;
+    case 'quote': return `<div class="media quote"><q>${m.quote}</q><div class="att">${m.att}</div></div>`;
+    case 'sms': return `<div class="media sms"><div class="from">${m.from}</div><div class="bub">${m.body}</div></div>`;
+    case 'shot': return `<div class="media shot">${m.html}</div>`;
+  }
+  return '';
+}
+function renderPost(p){
+  return `<article class="post" aria-label="Social media post">
+    ${p.shared?`<div class="shared">🔁 ${p.shared}</div>`:''}
+    <div class="phead"><div class="av" style="background:${p.av[1]}">${p.av[0]}</div>
+      <div class="who"><div class="name">${p.name} ${p.v?'<span class="check" title="Checkmark">✓</span>':''} ${p.gov?'<span class="govtag">Government</span>':''}</div>
+      <div class="handle">${p.handle} · ${p.time}</div></div>
+      <div class="ptype">${p.type}</div></div>
+    <div class="ptext2">${p.text}</div>
+    ${renderMedia(p.media)}
+    <div class="stats"><span>♥ ${fmt(p.stats[0])}</span><span>🔁 ${fmt(p.stats[1])}</span><span>💬 ${fmt(p.stats[2])}</span></div>
+  </article>`;
+}
+const VBTN=['vT','vM','vF'];
+
+function show(n){
+  const p=deck[n]; opened=new Set(); keyId=null; verdict=null; locked=false;
+  seen[p.id]=(seen[p.id]||0)+1; saveSeen();
+  $('postWrap').innerHTML=renderPost(p);
+  $('inv').classList.remove('locked');
+  $('evlist').innerHTML=`<p class="muted" id="evempty" style="margin:0">Open a tool to collect evidence. Then click the one piece of evidence that best proves your verdict to ★ star it.</p>`;
+  $('tools').innerHTML=Object.keys(TOOLS).map(k=>`<button class="tool" data-k="${k}"><span class="ic">${TOOLS[k][0]}</span><b>${TOOLS[k][1]}</b><small>${TOOLS[k][2]}</small></button>`).join('');
+  document.querySelectorAll('.tool').forEach(b=>b.onclick=()=>openTool(b.dataset.k));
+  VBTN.forEach(id=>{$(id).classList.remove('sel');$(id).disabled=false;});
+  $('fb').innerHTML=''; $('lockBtn').classList.remove('hidden');
+  toggleHelp(false);
+  updateUI();
+  $('barfill').style.width=(n/deck.length*100)+'%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function openTool(k,force){
+  if(opened.has(k)||(locked&&!force)) return;
+  opened.add(k);
+  document.querySelector(`.tool[data-k="${k}"]`).classList.add('used');
+  const em=$('evempty'); if(em) em.remove();
+  const p=deck[idx];
+  const g=document.createElement('div');
+  g.innerHTML=`<div class="evgroup">${TOOLS[k][0]} ${TOOLS[k][1]}</div>`+
+    p.ev[k].map((e,i)=>`<button class="ev" data-id="${k}-${i}" aria-pressed="false"><div class="src">${e[1]}</div>${e[2]}</button>`).join('');
+  g.style.display='contents';
+  $('evlist').appendChild(g);
+  g.querySelectorAll('.ev').forEach(b=>b.onclick=()=>{ if(locked) return; keyId = keyId===b.dataset.id?null:b.dataset.id; updateUI(); });
+}
+function setVerdict(v){ if(locked) return; verdict=v; updateUI(); }
+$('vT').onclick=()=>setVerdict('T'); $('vM').onclick=()=>setVerdict('M'); $('vF').onclick=()=>setVerdict('F');
+
+function updateUI(){
+  VBTN.forEach(id=>$(id).classList.toggle('sel',verdict===id[1]));
+  document.querySelectorAll('.ev').forEach(b=>{const on=b.dataset.id===keyId;b.classList.toggle('key',on);b.setAttribute('aria-pressed',on);});
+  const kb=$('keybox');
+  if(keyId){ const [k,i]=keyId.split('-'); kb.className='keybox has'; kb.innerHTML=`<b>2. ★ Key evidence:</b> ${deck[idx].ev[k][+i][2]}`; }
+  else { kb.className='keybox'; kb.innerHTML=`<b>2. ★ Key evidence:</b> <span class="muted">none starred yet (worth up to +5 points)</span>`; }
+  $('lockBtn').disabled=!verdict;
+  const pts=results.reduce((a,r)=>a+r.pts,0);
+  $('ptext').textContent=`${mode==='basic'?'Basic':'Advanced'} mode · Post ${idx+1} of ${deck.length} · ${pts} points`;
+}
+
+function lock(){
+  if(!verdict||locked) return;
+  locked=true; toggleHelp(false);
+  const p=deck[idx], a=ans(p);
+  const full = verdict===a;
+  const partial = !full && mode==='advanced' && ((verdict==='F'&&a==='M')||(verdict==='M'&&a==='F'));
+  let w=-1; if(keyId){const [k,i]=keyId.split('-'); w=p.ev[k][+i][0];}
+  const vPts = full?10:partial?5:0;
+  const evPts = (full||partial) ? (w===3?5:w===1?2:0) : 0;
+  const pts=vPts+evPts;
+  results.push({p, a, verdict, full, partial, w, evPts, pts});
+  Object.keys(TOOLS).forEach(k=>openTool(k,true));
+  $('inv').classList.add('locked');
+  VBTN.forEach(id=>$(id).disabled=true);
+  document.querySelectorAll('.ev').forEach(b=>{
+    const [k,i]=b.dataset.id.split('-'); const wt=p.ev[k][+i][0];
+    b.insertAdjacentHTML('beforeend', `<div><span class="badge b${wt}">${wt===3?'🎯 Smoking gun':wt===1?'Helpful':'Not decisive'}</span></div>`);
+  });
+  const gun=Object.values(p.ev).flat().find(e=>e[0]===3);
+  let evMsg;
+  if(w===-1) evMsg=`You didn't star any evidence.`;
+  else if(w===3) evMsg=`You starred the smoking gun! 🎯`;
+  else if(w===1) evMsg=`Your starred evidence was helpful, but not the strongest.`;
+  else evMsg=`Your starred evidence doesn't really prove anything either way.`;
+  if(!full && !partial && w!==-1) evMsg+=` (Evidence points only count when your verdict earns credit.)`;
+  let extra='';
+  if(partial){
+    extra = a==='M'
+      ? `<p style="margin:.4em 0">🟠 <b>Close: half credit.</b> You spotted that this post can't be trusted, but it's <b>Misleading</b>, not False: it's built from something real that's been twisted or taken out of context.</p>`
+      : `<p style="margin:.4em 0">🟠 <b>Close: half credit.</b> You spotted that this post can't be trusted, but it's <b>False</b>, not Misleading: the key piece is invented or fake, not real information taken out of context.</p>`;
+  }
+  if(mode==='basic' && p.m){
+    extra += `<p style="margin:.4em 0" class="muted">💡 <b>In Advanced mode</b>, this post would be rated <span class="tag M">MISLEADING</span>: it uses something real but leads you to a false conclusion.</p>`;
+  }
+  $('lockBtn').classList.add('hidden');
+  $('fb').innerHTML=`<div class="feedback ${full?'right':'wrong'}" ${partial?'style="background:var(--gold-bg);border-color:#f1d58c"':''}>
+    <div class="res">${full?'✅ Correct!':partial?'🟠 Partly right.':'❌ Not quite.'} This post is <span class="tag ${a}">${LABEL[a]}</span></div>
+    <div class="pts"><span>Verdict: +${vPts}</span><span>Evidence: +${evPts}</span><span>Total: +${pts}</span></div>
+    ${extra}
+    <p style="margin:.4em 0">${evMsg}</p>
+    <p style="margin:.4em 0"><b>🎯 Smoking gun:</b> ${gun[1]}. ${gun[2]}</p>
+    <p style="margin:.4em 0">${p.explain}</p>
+  </div>
+  <button class="btn primary next" id="nextBtn">${idx<deck.length-1?'Next post →':'See my results →'}</button>`;
+  $('nextBtn').onclick=next;
+  updateUI();
+  $('fb').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+$('lockBtn').onclick=lock;
+function next(){ idx++; if(idx<deck.length) show(idx); else finish(); }
+
+function finish(){
+  $('game').classList.add('hidden'); $('barfill').style.width='100%';
+  const total=results.reduce((a,r)=>a+r.pts,0), max=deck.length*15;
+  const correct=results.filter(r=>r.full).length, partials=results.filter(r=>r.partial).length;
+  const guns=results.filter(r=>(r.full||r.partial)&&r.w===3).length;
+  const fooled=results.filter(r=>r.a!=='T'&&r.verdict==='T').length, doubted=results.filter(r=>r.a==='T'&&r.verdict!=='T').length;
+  const pct=total/max;
+  const title=pct>=.85?'Expert Fact-Checker 🏆':pct>=.7?'Sharp Investigator 🔎':pct>=.5?'Getting There 📈':'Keep Practicing 💪';
+  let pattern=[];
+  if(fooled) pattern.push(`You trusted <b>${fooled}</b> post${fooled>1?'s':''} that ${fooled>1?'were':'was'} false or misleading. Slow down when a post triggers strong emotions, and look for confirmation.`);
+  if(doubted) pattern.push(`You doubted <b>${doubted}</b> true post${doubted>1?'s':''}. Skepticism is good, but when strong evidence confirms something, trust it.`);
+  if(partials) pattern.push(`You earned half credit <b>${partials}</b> time${partials>1?'s':''} by mixing up False and Misleading. Ask: "Are the pieces real?" Real pieces with a wrong takeaway → Misleading. Fake pieces → False.`);
+  const missedGun=results.filter(r=>(r.full||r.partial)&&r.w!==3).length;
+  if(missedGun) pattern.push(`On <b>${missedGun}</b> post${missedGun>1?'s':''} where your verdict earned credit, you didn't star the smoking gun. Ask: "Which ONE clue would convince a skeptic?" Primary sources (official records, original documents, the original photo or video) usually beat opinions and vibes.`);
+  if(!pattern.length) pattern.push(`Flawless. Every verdict right and every smoking gun found!`);
+  if(mode==='basic' && pct>=.7) pattern.push(`🟠 <b>Ready for a challenge?</b> Try <b>Advanced mode</b>, where you'll also have to tell <b>False</b> (made up) apart from <b>Misleading</b> (real but twisted).`);
+  const rows=results.map((r,i)=>`<tr><td>${i+1}</td><td><b>${r.p.name}</b><br><span class="muted">${r.p.type}</span></td>
+    <td><span class="tag ${r.a}">${LABEL[r.a]}</span></td>
+    <td><span class="tag ${r.verdict}" style="opacity:.85">${LABEL[r.verdict]}</span> <span class="${r.full?'ok':r.partial?'':'no'}" ${r.partial?'style="color:var(--gold);font-weight:800"':''}>${r.full?'✓':r.partial?'½':'✗'}</span></td>
+    <td>${r.w===3?'🎯 Smoking gun':r.w===1?'Helpful':r.w===0?'Not decisive':'—'}</td><td><b>${r.pts}</b></td></tr>`).join('');
+  $('results').innerHTML=`
+    <h1>${title}</h1>
+    <p class="muted" style="margin-top:0">${mode==='basic'?'Basic':'Advanced'} mode · You've now seen ${POSTS.filter(p=>seen[p.id]).length} of the ${POSTS.length} posts in the game.${POSTS.every(p=>seen[p.id])?' You’ve seen them all! New games will mix in posts you’ve seen least.':' Play again for new ones.'}</p>
+    <div class="grid4">
+      <div><div class="big">${total}</div><div class="muted">points out of ${max}</div></div>
+      <div><div class="big">${correct}/${deck.length}</div><div class="muted">fully correct verdicts${mode==='advanced'?` (+${partials} half credit)`:''}</div></div>
+      <div><div class="big">${guns}</div><div class="muted">smoking guns found</div></div>
+      <div><div class="big">${fooled} / ${doubted}</div><div class="muted">untrue posts trusted / true posts doubted</div></div>
+    </div>
+    ${pattern.map(s=>`<p>${s}</p>`).join('')}
+    <h2>Post-by-post review</h2>
+    <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Source</th><th>Answer</th><th>You said</th><th>Your evidence</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <h2 style="margin-top:22px">Think about it</h2>
+    <ol>
+      <li>Which post was hardest? Which clue finally decided it?</li>
+      <li>What makes a piece of evidence a "smoking gun" instead of just helpful? What did most smoking guns have in common?</li>
+      <li>Some true posts came from politicians, bloggers, or relatives who'd shared hoaxes before. Why isn't "who posted it" enough to decide?</li>
+      <li>Why might misleading posts (real information, twisted) be harder to catch, and more persuasive, than completely made-up ones?</li>
+      <li>How did knowing how government works (the Constitution, federalism, how bills and courts work) help you spot false claims?</li>
+    </ol>
+    <p style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn primary" id="again">Play again with new posts</button>
+      ${MODE_LOCK?'':`<button class="btn" style="background:var(--chip)" id="switchMode">Switch to ${mode==='basic'?'Advanced':'Basic'} mode</button>`}
+    </p>`;
+  $('results').classList.remove('hidden');
+  $('again').onclick=start;
+  if(!MODE_LOCK) $('switchMode').onclick=()=>{ setMode(mode==='basic'?'advanced':'basic'); start(); };
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function start(){
+  deck=buildDeck(); idx=0; results=[];
+  const adv=mode==='advanced';
+  $('vM').classList.toggle('hidden',!adv);
+  $('verdictRow').classList.toggle('three',adv);
+  $('helpDefs').innerHTML=defsHTML(mode,true);
+  $('modePill').textContent=adv?'🟠 Advanced mode':'🟢 Basic mode';
+  ['intro','results'].forEach(id=>$(id).classList.add('hidden'));
+  $('game').classList.remove('hidden'); $('prog').classList.remove('hidden'); show(0);
+}
+$('count').textContent=POSTS_PER_GAME; $('bank').textContent=POSTS.length;
+$('startBtn').onclick=start;
+</script>
+</body>
+</html>
